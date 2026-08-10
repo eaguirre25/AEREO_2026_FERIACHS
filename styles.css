@@ -155,7 +155,7 @@ button:focus-visible {
   background: rgba(62, 12, 8, 0.86);
 }
 
-.aircraft-credit {
+.airship-credit {
   position: fixed;
   bottom: 58px;
   left: 24px;
@@ -167,8 +167,8 @@ button:focus-visible {
   text-shadow: 0 1px 5px #000;
 }
 
-.aircraft-credit:hover,
-.aircraft-credit:focus-visible { color: #fff; }
+.airship-credit:hover,
+.airship-credit:focus-visible { color: #fff; }
 
 noscript {
   position: fixed;
@@ -234,7 +234,7 @@ noscript {
   }
 
   .status { display: none; }
-  .aircraft-credit {
+  .airship-credit {
     bottom: calc(113px + env(safe-area-inset-bottom));
     left: 16px;
   }

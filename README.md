@@ -4,11 +4,11 @@ Experiencia web 3D guiada por el Partido de General San Martín, Buenos Aires.
 
 ## Prototipo funcional
 
-El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No requiere API key para la base cartográfica. La aeronave principal es una **Cessna 172P de FlightGear**, convertida y optimizada como GLB bajo GPL-2.0. Si el asset no puede cargarse, la aplicación conserva automáticamente una avioneta geométrica liviana como respaldo.
+El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No requiere API key para la base cartográfica. El vehículo principal es el **Airship de C2DH/zoomland**, un dirigible GLB comprimido con Draco bajo AGPL-3.0. Si el asset no puede cargarse, la aplicación conserva automáticamente un dirigible geométrico liviano como respaldo.
 
 ## Las 9 postas
 
-1. **UNSAM — Campus Miguelete** — despegue
+1. **UNSAM — Campus Miguelete** — elevación
 2. **Villa Lynch** — sobrevuelo
 3. **San Martín centro** — sobrevuelo
 4. **Estadio de Chacarita Juniors** — pasada baja
@@ -18,7 +18,7 @@ El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No r
 8. **Loma Hermosa** — sobrevuelo
 9. **CEAMSE — Complejo Ambiental Norte III** — descenso final
 
-El avión no aterriza en las postas intermedias. La altura y el zoom varían para que el territorio pueda reconocerse. CEAMSE funciona como cierre con descenso progresivo.
+El dirigible mantiene un movimiento continuo y reduce la velocidad cerca de las postas. La altura y el zoom varían para que el territorio pueda reconocerse. CEAMSE funciona como cierre con descenso progresivo.
 
 ## Ejecutar localmente
 
@@ -47,24 +47,24 @@ Villa Billinghurst permanezca dentro de sus límites cartográficos.
 - `styles.css` — estética del recorrido
 - `boot.js` — diagnóstico de carga y mensaje de recuperación
 - `route.js` — coordenadas, alturas y tiempos de las postas
-- `app.js` — mapa 3D, avión, cámara y animación
-- `docs/ASSETS_3D.md` — evaluación de aeronaves abiertas
+- `app.js` — mapa 3D, dirigible, cámara y animación
+- `docs/ASSETS_3D.md` — procedencia y evaluación del vehículo 3D
 - `docs/CUSTOM_3D.md` — incorporación de modelos propios al mapa
 - `.github/workflows/pages.yml` — despliegue automático en GitHub Pages desde `main`
 
-El comienzo incluye carreteo, aceleración y rotación sobre la avenida 25 de
-Mayo frente al Campus Miguelete. La geometría y duración de esa maniobra se
-ajustan con `DEPARTURE_PATH` y `DEPARTURE_SECONDS` dentro de `route.js`.
+El comienzo incluye elevación vertical desde UNSAM y avance suave sobre la
+avenida 25 de Mayo. La geometría y duración de esa maniobra se ajustan con
+`DEPARTURE_PATH` y `DEPARTURE_SECONDS` dentro de `route.js`.
 
 La posta 04 incorpora el estadio de Chacarita como hito GLB georreferenciado.
 Los hitos adicionales se registran en `LANDMARKS`, dentro de `route.js`.
 
-## Aeronave 3D
+## Dirigible 3D
 
-La Cessna 172P deriva de `c172p-team/c172p`. Se distribuye con su licencia,
-créditos, fuente exterior filtrada y una nota completa de modificaciones en
-`assets/models/c172p/`. La conversión puede reproducirse con
-`scripts/convert_ac3d_to_glb.py`.
+El Airship procede de `C2DH/zoomland`, conserva el GLB original, la licencia
+AGPL-3.0, el componente fuente que anima `Fan` y una nota completa de adaptación
+en `assets/models/airship/`. Los logos originales se neutralizan al cargar el
+modelo, sin alterar el archivo de origen.
 
 ## Publicación
 

@@ -14,10 +14,12 @@ test('la ruta tiene una duración por cada tramo', () => {
   assert.equal(SEGMENT_SECONDS.length, STOPS.length - 1);
 });
 
-test('el carreteo y el despegue recorren la avenida 25 de Mayo sin saltos', () => {
+test('la elevación y salida del dirigible parten de UNSAM sin saltos', () => {
   assert.equal(DEPARTURE_PATH.length, DEPARTURE_SECONDS.length + 1);
   assert.ok(DEPARTURE_SECONDS.every(seconds => seconds >= 4 && seconds <= 12));
-  assert.equal(DEPARTURE_PATH[0].alt, DEPARTURE_PATH[1].alt);
+  assert.equal(DEPARTURE_PATH[0].lat, DEPARTURE_PATH[1].lat);
+  assert.equal(DEPARTURE_PATH[0].lng, DEPARTURE_PATH[1].lng);
+  assert.ok(DEPARTURE_PATH[1].alt > DEPARTURE_PATH[0].alt);
   assert.ok(DEPARTURE_PATH[2].alt > DEPARTURE_PATH[1].alt);
 
   DEPARTURE_PATH.forEach(point => {

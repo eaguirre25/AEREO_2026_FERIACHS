@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import {
   STOPS,
   SEGMENT_SECONDS,
@@ -16,16 +17,16 @@ const initialPlaneState = () => ({
   bearing: bearing(DEPARTURE_PATH[0], DEPARTURE_PATH[1]),
   bank: 0,
   pitch: 0,
-  scale: 0.52,
-  throttle: 0.24
+  scale: 0.72,
+  throttle: 0.32
 });
 
 const map = new maplibregl.Map({
   container: 'map',
   style: 'https://tiles.openfreemap.org/styles/liberty',
   center: [DEPARTURE_PATH[0].lng, DEPARTURE_PATH[0].lat],
-  zoom: 17.3,
-  pitch: 72,
+  zoom: 16.9,
+  pitch: 66,
   bearing: bearing(DEPARTURE_PATH[0], DEPARTURE_PATH[1]),
   antialias: true,
   attributionControl: false
@@ -129,10 +130,10 @@ function previewStop(index) {
   startBtn.disabled = false;
   startBtn.textContent = isLastStop
     ? 'VOLVER A VOLAR'
-    : index === 0 ? 'DESPEGAR' : 'CONTINUAR';
+    : index === 0 ? 'ELEVAR' : 'CONTINUAR';
   setStatus(isLastStop
     ? 'Recorrido completo · CEAMSE'
-    : index === 0 ? 'Lista para carretear por Av. 25 de Mayo' : `Vista previa · ${stop.name}`);
+    : index === 0 ? 'Dirigible listo para elevarse desde UNSAM' : `Vista previa · ${stop.name}`);
 
   map.flyTo({
     center: [planeState.lng, planeState.lat],
@@ -167,16 +168,16 @@ function interpolate(a, b, progress) {
   const routeBearing = bearing(a, b);
   let altitude = a.alt + (b.alt - a.alt) * eased + arc * CRUISE_ALTITUDE;
 
-  if (segment === 0) altitude = a.alt + (b.alt - a.alt) * eased + arc * 105;
+  if (segment === 0) altitude = a.alt + (b.alt - a.alt) * eased + arc * 35;
   if (segment === STOPS.length - 2) {
-    altitude = a.alt + (b.alt - a.alt) * eased + arc * 95;
+    altitude = a.alt + (b.alt - a.alt) * eased + arc * 25;
   }
 
   const incomingBearing = segment === 0
     ? routeBearing
     : bearing(STOPS[segment - 1], a);
   const bank = Math.sin(Math.PI * progress)
-    * Math.max(-13, Math.min(13, angleDelta(incomingBearing, routeBearing) * 0.22));
+    * Math.max(-6, Math.min(6, angleDelta(incomingBearing, routeBearing) * 0.12));
 
   return {
     lng: a.lng + (b.lng - a.lng) * eased,
@@ -184,7 +185,7 @@ function interpolate(a, b, progress) {
     alt: altitude,
     bearing: routeBearing,
     bank,
-    pitch: segment === 0 ? 7 * (1 - eased) : 0,
+    pitch: segment === 0 ? 1.5 * (1 - eased) : 0,
     scale: 1,
     throttle: 0.86
   };
@@ -197,32 +198,33 @@ function interpolateDeparture(a, b, progress, phase) {
     return {
       lng: a.lng + (b.lng - a.lng) * accelerated,
       lat: a.lat + (b.lat - a.lat) * accelerated,
-      alt: a.alt + Math.sin(progress * Math.PI * 8) * 0.12,
+      alt: a.alt + (b.alt - a.alt) * smooth(progress)
+        + Math.sin(progress * Math.PI * 4) * 0.35,
       bearing: routeBearing,
-      bank: Math.sin(progress * Math.PI * 6) * 0.25,
-      pitch: Math.sin(progress * Math.PI * 8) * 0.3,
-      scale: 0.52,
-      throttle: 0.24 + progress * 0.34
+      bank: Math.sin(progress * Math.PI * 4) * 0.35,
+      pitch: 0,
+      scale: 0.72 + smooth(progress) * 0.28,
+      throttle: 0.32 + progress * 0.18
     };
   }
 
   const accelerated = smooth(progress);
-  const lift = smooth(Math.max(0, Math.min(1, (progress - 0.38) / 0.62)));
+  const lift = smooth(progress);
   return {
     lng: a.lng + (b.lng - a.lng) * accelerated,
     lat: a.lat + (b.lat - a.lat) * accelerated,
     alt: a.alt + (b.alt - a.alt) * lift,
     bearing: routeBearing,
     bank: 0,
-    pitch: lift === 0 ? 0 : 11 * Math.sin(lift * Math.PI * 0.72),
-    scale: 0.52 + lift * 0.48,
-    throttle: 0.58 + progress * 0.42
+    pitch: 1.8 * Math.sin(Math.PI * progress),
+    scale: 1,
+    throttle: 0.5 + progress * 0.18
   };
 }
 
 function cameraFollow(position) {
-  const radians = (position.bearing + 180) * Math.PI / 180;
-  const distance = flightStage === 'departure' ? 0.00023 : 0.00035;
+  const radians = (position.bearing + 225) * Math.PI / 180;
+  const distance = flightStage === 'departure' ? 0.00048 : 0.00055;
   const center = [
     position.lng + Math.sin(radians) * distance,
     position.lat + Math.cos(radians) * distance
@@ -230,9 +232,9 @@ function cameraFollow(position) {
 
   map.jumpTo({
     center,
-    zoom: flightStage === 'departure' ? 17.25 : position.alt < 120 ? 16.8 : 16.5,
-    pitch: flightStage === 'departure' ? 72 : 68,
-    bearing: position.bearing
+    zoom: flightStage === 'departure' ? 16.9 : position.alt < 120 ? 16.6 : 16.3,
+    pitch: flightStage === 'departure' ? 66 : 65,
+    bearing: position.bearing + 10
   });
 }
 
@@ -275,7 +277,7 @@ function animate(now) {
       departurePhase += 1;
       segmentStart = now;
       if (departurePhase < DEPARTURE_SECONDS.length) {
-        setStatus('Carrera de despegue · Av. 25 de Mayo');
+        setStatus('Avance inicial sobre Av. 25 de Mayo');
       } else {
         flightStage = 'route';
         departurePhase = DEPARTURE_SECONDS.length - 1;
@@ -307,7 +309,7 @@ function start() {
   pauseBtn.textContent = 'PAUSA';
   pauseBtn.setAttribute('aria-pressed', 'false');
   setStatus(flightStage === 'departure'
-    ? 'Carreteando por Av. 25 de Mayo'
+    ? 'Elevación suave desde UNSAM'
     : `Rumbo a ${STOPS[segment + 1].name}`);
   cancelAnimation();
   animationFrameId = requestAnimationFrame(animate);
@@ -325,16 +327,16 @@ function reset(animateMap = true) {
   setStop(0);
   setAltitude(planeState.alt);
   startBtn.disabled = false;
-  startBtn.textContent = 'DESPEGAR';
+  startBtn.textContent = 'ELEVAR';
   pauseBtn.disabled = true;
   pauseBtn.textContent = 'PAUSA';
   pauseBtn.setAttribute('aria-pressed', 'false');
-  setStatus('Lista para carretear por Av. 25 de Mayo');
+  setStatus('Dirigible listo para elevarse desde UNSAM');
 
   const transition = {
     center: [planeState.lng, planeState.lat],
-    zoom: 17.3,
-    pitch: 72,
+    zoom: 16.9,
+    pitch: 66,
     bearing: planeState.bearing,
     duration: animateMap ? 1600 : 0,
     essential: false
@@ -364,8 +366,8 @@ pauseBtn.addEventListener('click', () => {
     pauseBtn.setAttribute('aria-pressed', 'false');
     setStatus(flightStage === 'departure'
       ? departurePhase === 0
-        ? 'Carreteando por Av. 25 de Mayo'
-        : 'Carrera de despegue · Av. 25 de Mayo'
+        ? 'Elevación suave desde UNSAM'
+        : 'Avance inicial sobre Av. 25 de Mayo'
       : `Rumbo a ${STOPS[segment + 1].name}`);
     animationFrameId = requestAnimationFrame(animate);
   }
@@ -401,7 +403,7 @@ map.on('load', () => {
       .querySelector('.maplibregl-ctrl-attrib')
       ?.classList.remove('maplibregl-compact-show');
   }, 0);
-  setStatus('Lista para carretear por Av. 25 de Mayo');
+  setStatus('Dirigible listo para elevarse desde UNSAM');
 
   const layers = map.getStyle().layers || [];
   const firstLabel = layers.find(layer => layer.type === 'symbol');
@@ -488,7 +490,7 @@ map.on('load', () => {
   LANDMARKS.forEach(landmark => {
     map.addLayer(makeLandmarkLayer(landmark), firstLabel?.id);
   });
-  map.addLayer(makeAircraftLayer());
+  map.addLayer(makeAirshipLayer());
 });
 
 function makeLandmarkLayer(config) {
@@ -552,55 +554,70 @@ function makeLandmarkLayer(config) {
   };
 }
 
-function makeAircraftLayer() {
+function makeAirshipLayer() {
   let renderer;
   let scene;
   let camera;
-  let aircraft;
-  let propellers = [];
-  let aircraftScale = 4.4;
+  let airship;
+  let fans = [];
+  let airshipScale = 4.2;
 
   return {
-    id: 'aircraft-3d',
+    id: 'airship-3d',
     type: 'custom',
     renderingMode: '3d',
     onAdd(layerMap, gl) {
       camera = new THREE.Camera();
       scene = new THREE.Scene();
-      const fallback = createFallbackAircraft();
-      aircraft = fallback.aircraft;
-      propellers = fallback.propellers;
-      aircraft.scale.setScalar(4.4);
-      scene.add(aircraft);
-      document.documentElement.dataset.aircraftModel = 'fallback';
+      const fallback = createFallbackAirship();
+      airship = fallback.airship;
+      fans = fallback.fans;
+      airship.scale.setScalar(airshipScale);
+      scene.add(airship);
+      document.documentElement.dataset.airshipModel = 'fallback';
 
-      new GLTFLoader().load(
-        './assets/models/c172p/aircraft.glb',
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.178.0/examples/jsm/libs/draco/');
+      dracoLoader.setWorkerLimit(1);
+      const loader = new GLTFLoader();
+      loader.setDRACOLoader(dracoLoader);
+      loader.load(
+        './assets/models/airship/airship.glb',
         gltf => {
-          const loadedAircraft = gltf.scene;
-          const loadedPropellers = [];
-          loadedAircraft.traverse(object => {
+          const loadedAirship = gltf.scene;
+          const loadedFans = [];
+          loadedAirship.rotation.x = Math.PI / 2;
+          loadedAirship.traverse(object => {
             object.frustumCulled = false;
-            if (object.name.startsWith('Propeller')) loadedPropellers.push(object);
-            if (object.isMesh && object.material?.color) {
-              object.material.color.lerp(new THREE.Color(0xff6a32), 0.28);
+            if (object.name === 'Fan') loadedFans.push(object);
+            if (object.isMesh) {
+              const materials = Array.isArray(object.material) ? object.material : [object.material];
+              materials.filter(Boolean).forEach(material => {
+                if (material.name.startsWith('Logo')) {
+                  material.map = null;
+                  material.emissiveMap = null;
+                  material.color?.set(material.name === 'Logo' ? 0xff6a32 : 0xf5f2e8);
+                  material.needsUpdate = true;
+                }
+              });
             }
           });
-          loadedAircraft.scale.setScalar(8);
-          scene.remove(aircraft);
-          disposeObject(aircraft);
-          aircraft = loadedAircraft;
-          aircraftScale = 8;
-          propellers = loadedPropellers;
-          scene.add(aircraft);
-          document.documentElement.dataset.aircraftModel = 'c172p';
-          if (flightState === 'ready') setStatus('Cessna 172P lista para carretear');
+          loadedAirship.scale.setScalar(airshipScale);
+          scene.remove(airship);
+          disposeObject(airship);
+          airship = loadedAirship;
+          fans = loadedFans;
+          scene.add(airship);
+          document.documentElement.dataset.airshipModel = 'zoomland';
+          if (flightState === 'ready') setStatus('Dirigible listo para elevarse desde UNSAM');
+          dracoLoader.dispose();
           map.triggerRepaint();
         },
         undefined,
         error => {
-          console.error('No se pudo cargar la Cessna 172P; se conserva el modelo de respaldo.', error);
-          if (flightState === 'ready') setStatus('Lista para carretear · aeronave de respaldo');
+          dracoLoader.dispose();
+          console.error('No se pudo cargar el dirigible; se conserva el modelo de respaldo.', error);
+          if (flightState === 'ready') setStatus('Dirigible de respaldo listo para elevarse');
         }
       );
       scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 2.3));
@@ -616,10 +633,10 @@ function makeAircraftLayer() {
       renderer.autoClear = false;
     },
     render(gl, args) {
-      if (!aircraft) return;
-      aircraft.scale.setScalar(aircraftScale * (planeState.scale ?? 1));
-      propellers.forEach(propeller => {
-        propeller.rotation.x += 0.12 + (planeState.throttle ?? 0.8) * 0.62;
+      if (!airship) return;
+      airship.scale.setScalar(airshipScale * (planeState.scale ?? 1));
+      fans.forEach(fan => {
+        fan.rotation.x += 0.035 + (planeState.throttle ?? 0.6) * 0.11;
       });
       const coordinate = maplibregl.MercatorCoordinate.fromLngLat(
         [planeState.lng, planeState.lat],
@@ -644,38 +661,37 @@ function makeAircraftLayer() {
   };
 }
 
-function createFallbackAircraft() {
-  const accent = new THREE.MeshStandardMaterial({ color: 0xff4f2e, roughness: 0.48 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x18262d, roughness: 0.7 });
-  const aircraft = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(1, 5.8, 8, 16), accent);
-  body.rotation.z = Math.PI / 2;
-  aircraft.add(body);
+function createFallbackAirship() {
+  const accent = new THREE.MeshStandardMaterial({ color: 0xff6a32, roughness: 0.52 });
+  const light = new THREE.MeshStandardMaterial({ color: 0xf5f2e8, roughness: 0.65 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x18262d, roughness: 0.72 });
+  const airship = new THREE.Group();
 
-  const wing = new THREE.Mesh(new THREE.BoxGeometry(1, 11.5, 0.22), dark);
-  wing.position.set(0, 0, 1.05);
-  aircraft.add(wing);
+  const envelope = new THREE.Mesh(new THREE.SphereGeometry(4, 32, 18), light);
+  envelope.scale.set(2.5, 1, 1);
+  airship.add(envelope);
 
-  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.7, 4.2, 0.18), accent);
-  tail.position.set(-3.2, 0, 0.45);
-  aircraft.add(tail);
+  const stripe = new THREE.Mesh(new THREE.SphereGeometry(4.04, 32, 18, 0, Math.PI * 2, 1.34, 0.46), accent);
+  stripe.scale.set(2.5, 1, 1);
+  airship.add(stripe);
 
-  const fin = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.18, 1.7), accent);
-  fin.position.set(-3.35, 0, 1.05);
-  fin.rotation.y = -0.25;
-  aircraft.add(fin);
+  const gondola = new THREE.Mesh(new THREE.BoxGeometry(5.5, 2, 1.5), dark);
+  gondola.position.set(0.8, 0, -4.2);
+  airship.add(gondola);
 
-  const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.82, 1.2, 16), dark);
-  nose.rotation.z = Math.PI / 2;
-  nose.position.x = 3.25;
-  aircraft.add(nose);
+  const horizontalTail = new THREE.Mesh(new THREE.BoxGeometry(3.2, 6, 0.22), accent);
+  horizontalTail.position.x = -8.6;
+  airship.add(horizontalTail);
+  const verticalTail = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.22, 4.6), accent);
+  verticalTail.position.x = -8.6;
+  airship.add(verticalTail);
 
-  const propeller = new THREE.Group();
-  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.14, 4.5, 0.18), dark);
-  propeller.add(blade);
-  propeller.position.x = 3.9;
-  aircraft.add(propeller);
-  return { aircraft, propellers: [propeller] };
+  const fan = new THREE.Group();
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.18, 3.2, 0.3), light);
+  fan.add(blade);
+  fan.position.set(-2.2, 0, -4.2);
+  airship.add(fan);
+  return { airship, fans: [fan] };
 }
 
 function disposeObject(object) {

@@ -2,26 +2,30 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, stat } from 'node:fs/promises';
 
-const modelRoot = new URL('../assets/models/c172p/', import.meta.url);
+const modelRoot = new URL('../assets/models/airship/', import.meta.url);
 
-test('el Cessna distribuido es un GLB válido y apto para la web', async () => {
-  const modelUrl = new URL('aircraft.glb', modelRoot);
-  const [header, metadata] = await Promise.all([
+test('el dirigible distribuido es un GLB Draco válido y apto para la web', async () => {
+  const modelUrl = new URL('airship.glb', modelRoot);
+  const [file, metadata] = await Promise.all([
     readFile(modelUrl, { encoding: null, flag: 'r' }),
     stat(modelUrl),
   ]);
 
-  assert.equal(header.subarray(0, 4).toString('ascii'), 'glTF');
-  assert.ok(metadata.size > 100_000);
-  assert.ok(metadata.size < 6 * 1024 * 1024);
+  assert.equal(file.subarray(0, 4).toString('ascii'), 'glTF');
+  assert.ok(metadata.size > 20_000);
+  assert.ok(metadata.size < 100_000);
+
+  const jsonLength = file.readUInt32LE(12);
+  const gltf = JSON.parse(file.subarray(20, 20 + jsonLength).toString('utf8'));
+  assert.ok(gltf.extensionsUsed.includes('KHR_draco_mesh_compression'));
+  assert.ok(gltf.nodes.some(node => node.name === 'Fan'));
 });
 
 test('el modelo conserva licencia, atribución y fuente modificable', async () => {
   const requiredFiles = [
-    'LICENSE-GPL-2.0.txt',
+    'LICENSE-AGPL-3.0.txt',
     'NOTICE.md',
-    'UPSTREAM-AUTHORS.txt',
-    'source/c172p-exterior.ac',
+    'UPSTREAM-Airship.jsx',
   ];
 
   for (const relativePath of requiredFiles) {
