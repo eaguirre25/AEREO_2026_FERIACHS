@@ -24,12 +24,23 @@ export const DEPARTURE_SECONDS = [7,10];
 
 export const LANDMARKS = [
   {
+    id: 'unsam-logo',
+    model: './assets/models/landmarks/unsam/logo.glb',
+    lng: -58.5266950692,
+    lat: -34.5798390695,
+    altitude: 48,
+    rotation: 0,
+    rotationSpeed: 18,
+    scale: 0.18
+  },
+  {
     id: 'chacarita-stadium',
     model: './assets/models/landmarks/chacarita/stadium.glb',
     lng: -58.52820,
     lat: -34.56734,
     altitude: 0.8,
     rotation: -45,
-    scale: 1
+    scale: 1,
+    palette: 'chacarita'
   }
 ];

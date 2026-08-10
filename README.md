@@ -18,7 +18,7 @@ El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No r
 8. **Loma Hermosa** — sobrevuelo
 9. **CEAMSE — Complejo Ambiental Norte III** — descenso final
 
-El dirigible mantiene un movimiento continuo y reduce la velocidad cerca de las postas. La altura y el zoom varían para que el territorio pueda reconocerse. CEAMSE funciona como cierre con descenso progresivo.
+El dirigible mantiene un movimiento continuo mediante una curva suave que atraviesa todas las postas sin detenerse. La altura y el zoom varían para que el territorio pueda reconocerse. CEAMSE funciona como cierre con descenso progresivo.
 
 ## Ejecutar localmente
 
@@ -57,7 +57,13 @@ avenida 25 de Mayo. La geometría y duración de esa maniobra se ajustan con
 `DEPARTURE_PATH` y `DEPARTURE_SECONDS` dentro de `route.js`.
 
 La posta 04 incorpora el estadio de Chacarita como hito GLB georreferenciado.
-Los hitos adicionales se registran en `LANDMARKS`, dentro de `route.js`.
+El estadio se representa con la paleta blanca, roja y negra del club. Sobre el
+Campus Miguelete se conserva el volumen urbano y gira el logo 3D de UNSAM. Los
+hitos adicionales se registran en `LANDMARKS`, dentro de `route.js`.
+
+La capa `assets/data/san-martin-localidades.geojson` delimita y rotula las ocho
+localidades incluidas. Los edificios vectoriales usan una paleta azul y turquesa
+para distinguirse del gris habitual, incluso sobre la imagen satelital.
 
 ## Dirigible 3D
 
@@ -65,6 +71,10 @@ El Airship procede de `C2DH/zoomland`, conserva el GLB original, la licencia
 AGPL-3.0, el componente fuente que anima `Fan` y una nota completa de adaptación
 en `assets/models/airship/`. Los logos originales se neutralizan al cargar el
 modelo, sin alterar el archivo de origen.
+
+El dirigible se muestra al doble de la escala inicial. La hélice `Fan` de cola se
+amplía y anima según el avance, y una estela tridimensional semitransparente
+permanece detrás del vehículo durante el recorrido.
 
 ## Publicación
 

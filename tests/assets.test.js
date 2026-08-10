@@ -45,3 +45,28 @@ test('el estadio de Chacarita es un GLB web válido', async () => {
   assert.ok(metadata.size > 10_000);
   assert.ok(metadata.size < 1024 * 1024);
 });
+
+test('el logo UNSAM es un GLB web válido', async () => {
+  const logoUrl = new URL('../assets/models/landmarks/unsam/logo.glb', import.meta.url);
+  const [file, metadata] = await Promise.all([
+    readFile(logoUrl, { encoding: null, flag: 'r' }),
+    stat(logoUrl),
+  ]);
+
+  assert.equal(file.subarray(0, 4).toString('ascii'), 'glTF');
+  assert.ok(metadata.size > 10_000);
+  assert.ok(metadata.size < 1024 * 1024);
+});
+
+test('la capa de localidades contiene ocho polígonos identificados', async () => {
+  const geojsonUrl = new URL('../assets/data/san-martin-localidades.geojson', import.meta.url);
+  const geojson = JSON.parse(await readFile(geojsonUrl, 'utf8'));
+
+  assert.equal(geojson.type, 'FeatureCollection');
+  assert.equal(geojson.features.length, 8);
+  geojson.features.forEach(feature => {
+    assert.equal(feature.geometry.type, 'MultiPolygon');
+    assert.ok(feature.properties.Localidad);
+    assert.ok(feature.properties.siglas);
+  });
+});
