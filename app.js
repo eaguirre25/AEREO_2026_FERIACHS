@@ -14,7 +14,7 @@ const initialPlaneState = () => ({
   lng: DEPARTURE_PATH[0].lng,
   lat: DEPARTURE_PATH[0].lat,
   alt: DEPARTURE_PATH[0].alt,
-  bearing: bearing(DEPARTURE_PATH[0], DEPARTURE_PATH[1]),
+  bearing: bearing(DEPARTURE_PATH[1], DEPARTURE_PATH[2]),
   bank: 0,
   pitch: 0,
   scale: 0.72,
@@ -25,9 +25,9 @@ const map = new maplibregl.Map({
   container: 'map',
   style: 'https://tiles.openfreemap.org/styles/liberty',
   center: [DEPARTURE_PATH[0].lng, DEPARTURE_PATH[0].lat],
-  zoom: 16.9,
-  pitch: 66,
-  bearing: bearing(DEPARTURE_PATH[0], DEPARTURE_PATH[1]),
+  zoom: 16.4,
+  pitch: 58,
+  bearing: bearing(DEPARTURE_PATH[1], DEPARTURE_PATH[2]),
   antialias: true,
   attributionControl: false
 });
@@ -136,10 +136,7 @@ function previewStop(index) {
     : index === 0 ? 'Dirigible listo para elevarse desde UNSAM' : `Vista previa · ${stop.name}`);
 
   map.flyTo({
-    center: [planeState.lng, planeState.lat],
-    zoom: index === 0 ? 17.3 : stop.zoom,
-    pitch: 67,
-    bearing: planeState.bearing,
+    ...thirdPersonView(planeState),
     duration: 1800,
     essential: false
   });
@@ -192,7 +189,9 @@ function interpolate(a, b, progress) {
 }
 
 function interpolateDeparture(a, b, progress, phase) {
-  const routeBearing = bearing(a, b);
+  const routeBearing = phase === 0
+    ? bearing(DEPARTURE_PATH[1], DEPARTURE_PATH[2])
+    : bearing(a, b);
   if (phase === 0) {
     const accelerated = progress * progress;
     return {
@@ -222,20 +221,26 @@ function interpolateDeparture(a, b, progress, phase) {
   };
 }
 
-function cameraFollow(position) {
-  const radians = (position.bearing + 225) * Math.PI / 180;
-  const distance = flightStage === 'departure' ? 0.00048 : 0.00055;
+function thirdPersonView(position) {
+  const radians = position.bearing * Math.PI / 180;
+  const distance = flightStage === 'departure'
+    ? 0.00038
+    : position.alt < 120 ? 0.00062 : 0.00078;
   const center = [
     position.lng + Math.sin(radians) * distance,
     position.lat + Math.cos(radians) * distance
   ];
 
-  map.jumpTo({
+  return {
     center,
-    zoom: flightStage === 'departure' ? 16.9 : position.alt < 120 ? 16.6 : 16.3,
-    pitch: flightStage === 'departure' ? 66 : 65,
-    bearing: position.bearing + 10
-  });
+    zoom: flightStage === 'departure' ? 16.4 : position.alt < 120 ? 16.2 : 15.95,
+    pitch: flightStage === 'departure' ? 58 : 56,
+    bearing: position.bearing + 6
+  };
+}
+
+function cameraFollow(position) {
+  map.jumpTo(thirdPersonView(position));
 }
 
 function completeFlight() {
@@ -334,10 +339,7 @@ function reset(animateMap = true) {
   setStatus('Dirigible listo para elevarse desde UNSAM');
 
   const transition = {
-    center: [planeState.lng, planeState.lat],
-    zoom: 16.9,
-    pitch: 66,
-    bearing: planeState.bearing,
+    ...thirdPersonView(planeState),
     duration: animateMap ? 1600 : 0,
     essential: false
   };
