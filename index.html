@@ -3,7 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="Recorrido aéreo 3D por nueve postas del Partido de General San Martín.">
   <title>Aéreo San Martín 2026</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -15,13 +17,15 @@
     <p id="stopMeta">POSTA 01 · DESPEGUE</p>
   </section>
   <div class="controls">
-    <button id="startBtn" class="primary">DESPEGAR</button>
-    <button id="pauseBtn" disabled>PAUSA</button>
-    <button id="restartBtn">REINICIAR</button>
+    <button id="startBtn" type="button" class="primary">DESPEGAR</button>
+    <button id="pauseBtn" type="button" aria-pressed="false" disabled>PAUSA</button>
+    <button id="restartBtn" type="button">REINICIAR</button>
   </div>
   <nav id="routeNav" class="route-nav" aria-label="Postas del recorrido"></nav>
   <div class="altimeter"><span>ALT</span><strong id="altitude">0 m</strong></div>
-  <div id="status" class="status">Preparando aeronave…</div>
+  <div id="status" class="status" role="status" aria-live="polite">Preparando aeronave…</div>
+  <noscript>Esta experiencia necesita JavaScript para mostrar el mapa y el recorrido 3D.</noscript>
+  <script src="boot.js"></script>
   <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
   <script type="module" src="app.js"></script>
 </body>

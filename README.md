@@ -14,7 +14,7 @@ El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No r
 4. **Estadio de Chacarita Juniors** — pasada baja
 5. **San Andrés** — sobrevuelo
 6. **Villa Ballester** — sobrevuelo
-7. **Billinghurst** — sobrevuelo
+7. **Villa Billinghurst** — sobrevuelo
 8. **Loma Hermosa** — sobrevuelo
 9. **CEAMSE — Complejo Ambiental Norte III** — descenso final
 
@@ -30,10 +30,22 @@ python -m http.server 8000
 
 Abrir `http://localhost:8000`.
 
+## Verificación
+
+Con Node.js 24 o posterior:
+
+```bash
+npm test
+```
+
+La verificación controla la sintaxis, la estructura de la ruta y que la posta de
+Villa Billinghurst permanezca dentro de sus límites cartográficos.
+
 ## Archivos
 
 - `index.html` — interfaz y HUD
 - `styles.css` — estética del recorrido
+- `boot.js` — diagnóstico de carga y mensaje de recuperación
 - `route.js` — coordenadas, alturas y tiempos de las postas
 - `app.js` — mapa 3D, avión, cámara y animación
 - `docs/ASSETS_3D.md` — evaluación de aeronaves abiertas
