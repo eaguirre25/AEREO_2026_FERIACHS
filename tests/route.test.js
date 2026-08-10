@@ -107,3 +107,17 @@ test('las postas muestran nombres de localidades verificadas', () => {
   assert.equal(STOPS[8].lng, -58.58094506418298);
   assert.equal(STOPS[8].place, undefined);
 });
+
+test('las postas conservan los títulos temáticos del recorrido original', () => {
+  assert.deepEqual(STOPS.map(stop => stop.title), [
+    'Punto de partida',
+    'Mirador: afinar lo que vemos',
+    'Situación problemática',
+    'Pregunta de investigación',
+    'Objetivos',
+    'Hipótesis',
+    'Antecedentes',
+    'Equipaje metodológico',
+    'Conclusiones'
+  ]);
+});

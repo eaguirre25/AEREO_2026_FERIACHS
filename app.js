@@ -14,6 +14,8 @@ const AIRSHIP_BASE_SCALE = 16.8;
 const FLIGHT_SPEED_MULTIPLIER = 1.1;
 const TRAIL_MAX_POINTS = 42;
 const TRAIL_SAMPLE_MS = 140;
+const FAIR_TARGET_TIMESTAMP = Date.parse('2026-10-15T00:00:00-03:00');
+const DAY_MS = 24 * 60 * 60 * 1000;
 const POSTA_2_SLIDES = Array.from(
   { length: 7 },
   (_, index) => `./assets/materials/posta-2/slide-${String(index + 1).padStart(2, '0')}.webp`
@@ -69,7 +71,10 @@ window.setTimeout(() => {
 
 const $ = selector => document.querySelector(selector);
 const stopName = $('#stopName');
+const stopTheme = $('#stopTheme');
 const stopMeta = $('#stopMeta');
+const fairCountdown = $('#fairCountdown');
+const countdownDays = $('#countdownDays');
 const altitudeEl = $('#altitude');
 const statusEl = $('#status');
 const satelliteCredit = $('#satelliteCredit');
@@ -137,9 +142,10 @@ function setStop(index) {
   currentStopIndex = index;
   const postaColor = POSTA_COLORS[index];
   stopName.textContent = `POSTA ${stop.id}`;
+  stopTheme.textContent = stop.title.toUpperCase();
   const place = stop.place && stop.place !== stop.name ? ` · ${stop.place}` : '';
   stopMeta.textContent = `${stop.name}${place}`.toUpperCase();
-  stopMaterialBtn.setAttribute('aria-label', `Abrir materiales de la Posta ${stop.id}: ${stop.name}`);
+  stopMaterialBtn.setAttribute('aria-label', `Abrir materiales de la Posta ${stop.id}: ${stop.title}`);
   stopName.style.setProperty('--posta-color', postaColor);
   document.documentElement.style.setProperty('--active-posta-color', postaColor);
   prevStopBtn.disabled = index === 0;
@@ -173,6 +179,15 @@ function stepToStop(direction) {
 
 function setAltitude(altitude) {
   altitudeEl.textContent = `${Math.round(altitude)} m`;
+}
+
+function updateFairCountdown(now = Date.now()) {
+  const days = Math.max(0, Math.ceil((FAIR_TARGET_TIMESTAMP - now) / DAY_MS));
+  countdownDays.textContent = String(days);
+  fairCountdown.setAttribute(
+    'aria-label',
+    days === 1 ? 'Falta 1 día para la feria' : `Faltan ${days} días para la feria`
+  );
 }
 
 function setStatus(message, isError = false) {
@@ -334,7 +349,7 @@ function renderPosta2Slide() {
 
 function renderMaterial(index) {
   const stop = STOPS[index];
-  materialTitle.textContent = `POSTA ${stop.id} · ${stop.name}`;
+  materialTitle.textContent = `POSTA ${stop.id} · ${stop.title}`;
   if (index === 1) {
     materialSlideIndex = 0;
     renderPosta2Slide();
@@ -832,6 +847,8 @@ document.addEventListener('keydown', event => {
 
 setStop(0);
 setAltitude(planeState.alt);
+updateFairCountdown();
+window.setInterval(updateFairCountdown, 60 * 1000);
 
 const loadTimeout = window.setTimeout(() => {
   if (!mapReady) setStatus('No se pudo cargar el mapa. Verificá tu conexión y reintentá.', true);

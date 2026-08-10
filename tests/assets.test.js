@@ -187,3 +187,17 @@ test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async ()
   const sourceNote = await stat(new URL('../assets/materials/posta-2/SOURCE.md', import.meta.url));
   assert.ok(sourceNote.size > 0);
 });
+
+test('el HUD muestra el título temático y la cuenta regresiva sin revelar la fecha', async () => {
+  const [source, html] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8')
+  ]);
+  assert.match(html, /id="stopTheme"/);
+  assert.match(html, /id="countdownDays"/);
+  assert.match(source, /2026-10-15T00:00:00-03:00/);
+  assert.match(source, /Math\.ceil\(\(FAIR_TARGET_TIMESTAMP - now\) \/ DAY_MS\)/);
+  assert.match(source, /stopTheme\.textContent = stop\.title\.toUpperCase\(\)/);
+  assert.match(source, /materialTitle\.textContent = `POSTA \$\{stop\.id\} · \$\{stop\.title\}`/);
+  assert.doesNotMatch(html, /15[\/-]10[\/-]2026|15 de octubre/i);
+});
