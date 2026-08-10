@@ -52,6 +52,10 @@ Villa Billinghurst permanezca dentro de sus límites cartográficos.
 - `docs/CUSTOM_3D.md` — incorporación futura de modelos propios al mapa
 - `.github/workflows/pages.yml` — despliegue automático en GitHub Pages desde `main`
 
+El comienzo incluye carreteo, aceleración y rotación sobre la avenida 25 de
+Mayo frente al Campus Miguelete. La geometría y duración de esa maniobra se
+ajustan con `DEPARTURE_PATH` y `DEPARTURE_SECONDS` dentro de `route.js`.
+
 ## Aeronave 3D
 
 La Cessna 172P deriva de `c172p-team/c172p`. Se distribuye con su licencia,

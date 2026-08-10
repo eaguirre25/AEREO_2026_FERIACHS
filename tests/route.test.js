@@ -1,10 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { STOPS, SEGMENT_SECONDS, CRUISE_ALTITUDE } from '../route.js';
+import {
+  STOPS,
+  SEGMENT_SECONDS,
+  CRUISE_ALTITUDE,
+  DEPARTURE_PATH,
+  DEPARTURE_SECONDS
+} from '../route.js';
 
 test('la ruta tiene una duración por cada tramo', () => {
   assert.equal(STOPS.length, 9);
   assert.equal(SEGMENT_SECONDS.length, STOPS.length - 1);
+});
+
+test('el carreteo y el despegue recorren la avenida 25 de Mayo sin saltos', () => {
+  assert.equal(DEPARTURE_PATH.length, DEPARTURE_SECONDS.length + 1);
+  assert.ok(DEPARTURE_SECONDS.every(seconds => seconds >= 4 && seconds <= 12));
+  assert.equal(DEPARTURE_PATH[0].alt, DEPARTURE_PATH[1].alt);
+  assert.ok(DEPARTURE_PATH[2].alt > DEPARTURE_PATH[1].alt);
+
+  DEPARTURE_PATH.forEach(point => {
+    assert.ok(point.lat >= -34.582 && point.lat <= -34.577);
+    assert.ok(point.lng >= -58.530 && point.lng <= -58.523);
+  });
 });
 
 test('las postas tienen identificadores y datos válidos', () => {

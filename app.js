@@ -1,22 +1,31 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { STOPS, SEGMENT_SECONDS, CRUISE_ALTITUDE } from './route.js';
+import {
+  STOPS,
+  SEGMENT_SECONDS,
+  CRUISE_ALTITUDE,
+  DEPARTURE_PATH,
+  DEPARTURE_SECONDS
+} from './route.js';
 
 const initialPlaneState = () => ({
-  lng: STOPS[0].lng,
-  lat: STOPS[0].lat,
-  alt: 8,
-  bearing: bearing(STOPS[0], STOPS[1]),
-  bank: 0
+  lng: DEPARTURE_PATH[0].lng,
+  lat: DEPARTURE_PATH[0].lat,
+  alt: DEPARTURE_PATH[0].alt,
+  bearing: bearing(DEPARTURE_PATH[0], DEPARTURE_PATH[1]),
+  bank: 0,
+  pitch: 0,
+  scale: 0.52,
+  throttle: 0.24
 });
 
 const map = new maplibregl.Map({
   container: 'map',
   style: 'https://tiles.openfreemap.org/styles/liberty',
-  center: [STOPS[0].lng, STOPS[0].lat],
-  zoom: 16.8,
-  pitch: 67,
-  bearing: -18,
+  center: [DEPARTURE_PATH[0].lng, DEPARTURE_PATH[0].lat],
+  zoom: 17.3,
+  pitch: 72,
+  bearing: bearing(DEPARTURE_PATH[0], DEPARTURE_PATH[1]),
   antialias: true,
   attributionControl: false
 });
@@ -39,6 +48,8 @@ const restartBtn = $('#restartBtn');
 const nav = $('#routeNav');
 
 let flightState = 'ready';
+let flightStage = 'departure';
+let departurePhase = 0;
 let segment = 0;
 let segmentStart = 0;
 let pausedAt = 0;
@@ -89,21 +100,28 @@ function previewStop(index) {
   const isLastStop = index === STOPS.length - 1;
 
   flightState = isLastStop ? 'completed' : 'previewing';
+  flightStage = index === 0 ? 'departure' : 'route';
+  departurePhase = 0;
   segment = Math.min(index, STOPS.length - 2);
   segmentStart = 0;
-  planeState = {
-    ...planeState,
-    lng: stop.lng,
-    lat: stop.lat,
-    alt: stop.alt,
-    bearing: isLastStop
-      ? bearing(STOPS[index - 1], stop)
-      : bearing(stop, STOPS[index + 1]),
-    bank: 0
-  };
+  planeState = index === 0
+    ? initialPlaneState()
+    : {
+        ...planeState,
+        lng: stop.lng,
+        lat: stop.lat,
+        alt: stop.alt,
+        bearing: isLastStop
+          ? bearing(STOPS[index - 1], stop)
+          : bearing(stop, STOPS[index + 1]),
+        bank: 0,
+        pitch: 0,
+        scale: 1,
+        throttle: 0.82
+      };
 
   setStop(index);
-  setAltitude(stop.alt);
+  setAltitude(planeState.alt);
   pauseBtn.disabled = true;
   pauseBtn.textContent = 'PAUSA';
   pauseBtn.setAttribute('aria-pressed', 'false');
@@ -111,11 +129,13 @@ function previewStop(index) {
   startBtn.textContent = isLastStop
     ? 'VOLVER A VOLAR'
     : index === 0 ? 'DESPEGAR' : 'CONTINUAR';
-  setStatus(isLastStop ? 'Recorrido completo · CEAMSE' : `Vista previa · ${stop.name}`);
+  setStatus(isLastStop
+    ? 'Recorrido completo · CEAMSE'
+    : index === 0 ? 'Lista para carretear por Av. 25 de Mayo' : `Vista previa · ${stop.name}`);
 
   map.flyTo({
-    center: [stop.lng, stop.lat],
-    zoom: stop.zoom,
+    center: [planeState.lng, planeState.lat],
+    zoom: index === 0 ? 17.3 : stop.zoom,
     pitch: 67,
     bearing: planeState.bearing,
     duration: 1800,
@@ -146,7 +166,7 @@ function interpolate(a, b, progress) {
   const routeBearing = bearing(a, b);
   let altitude = a.alt + (b.alt - a.alt) * eased + arc * CRUISE_ALTITUDE;
 
-  if (segment === 0) altitude = 8 + (b.alt - 8) * eased + arc * 120;
+  if (segment === 0) altitude = a.alt + (b.alt - a.alt) * eased + arc * 105;
   if (segment === STOPS.length - 2) {
     altitude = a.alt + (b.alt - a.alt) * eased + arc * 95;
   }
@@ -162,13 +182,46 @@ function interpolate(a, b, progress) {
     lat: a.lat + (b.lat - a.lat) * eased,
     alt: altitude,
     bearing: routeBearing,
-    bank
+    bank,
+    pitch: segment === 0 ? 7 * (1 - eased) : 0,
+    scale: 1,
+    throttle: 0.86
+  };
+}
+
+function interpolateDeparture(a, b, progress, phase) {
+  const routeBearing = bearing(a, b);
+  if (phase === 0) {
+    const accelerated = progress * progress;
+    return {
+      lng: a.lng + (b.lng - a.lng) * accelerated,
+      lat: a.lat + (b.lat - a.lat) * accelerated,
+      alt: a.alt + Math.sin(progress * Math.PI * 8) * 0.12,
+      bearing: routeBearing,
+      bank: Math.sin(progress * Math.PI * 6) * 0.25,
+      pitch: Math.sin(progress * Math.PI * 8) * 0.3,
+      scale: 0.52,
+      throttle: 0.24 + progress * 0.34
+    };
+  }
+
+  const accelerated = smooth(progress);
+  const lift = smooth(Math.max(0, Math.min(1, (progress - 0.38) / 0.62)));
+  return {
+    lng: a.lng + (b.lng - a.lng) * accelerated,
+    lat: a.lat + (b.lat - a.lat) * accelerated,
+    alt: a.alt + (b.alt - a.alt) * lift,
+    bearing: routeBearing,
+    bank: 0,
+    pitch: lift === 0 ? 0 : 11 * Math.sin(lift * Math.PI * 0.72),
+    scale: 0.52 + lift * 0.48,
+    throttle: 0.58 + progress * 0.42
   };
 }
 
 function cameraFollow(position) {
   const radians = (position.bearing + 180) * Math.PI / 180;
-  const distance = 0.00035;
+  const distance = flightStage === 'departure' ? 0.00023 : 0.00035;
   const center = [
     position.lng + Math.sin(radians) * distance,
     position.lat + Math.cos(radians) * distance
@@ -176,8 +229,8 @@ function cameraFollow(position) {
 
   map.jumpTo({
     center,
-    zoom: position.alt < 120 ? 16.8 : 16.5,
-    pitch: 68,
+    zoom: flightStage === 'departure' ? 17.25 : position.alt < 120 ? 16.8 : 16.5,
+    pitch: flightStage === 'departure' ? 72 : 68,
     bearing: position.bearing
   });
 }
@@ -197,14 +250,40 @@ function completeFlight() {
 function animate(now) {
   if (flightState !== 'playing') return;
 
-  const duration = SEGMENT_SECONDS[segment] * 1000;
+  const duration = (flightStage === 'departure'
+    ? DEPARTURE_SECONDS[departurePhase]
+    : SEGMENT_SECONDS[segment]) * 1000;
   const progress = Math.min(1, (now - segmentStart) / duration);
-  planeState = interpolate(STOPS[segment], STOPS[segment + 1], progress);
+  if (flightStage === 'departure') {
+    planeState = interpolateDeparture(
+      DEPARTURE_PATH[departurePhase],
+      DEPARTURE_PATH[departurePhase + 1],
+      progress,
+      departurePhase
+    );
+  } else {
+    const origin = segment === 0 ? DEPARTURE_PATH.at(-1) : STOPS[segment];
+    planeState = interpolate(origin, STOPS[segment + 1], progress);
+  }
   setAltitude(planeState.alt);
   cameraFollow(planeState);
   map.triggerRepaint();
 
   if (progress >= 1) {
+    if (flightStage === 'departure') {
+      departurePhase += 1;
+      segmentStart = now;
+      if (departurePhase < DEPARTURE_SECONDS.length) {
+        setStatus('Carrera de despegue · Av. 25 de Mayo');
+      } else {
+        flightStage = 'route';
+        departurePhase = DEPARTURE_SECONDS.length - 1;
+        setStatus(`En ascenso · rumbo a ${STOPS[1].name}`);
+      }
+      animationFrameId = requestAnimationFrame(animate);
+      return;
+    }
+
     segment += 1;
     setStop(segment);
     if (segment >= STOPS.length - 1) {
@@ -226,7 +305,9 @@ function start() {
   pauseBtn.disabled = false;
   pauseBtn.textContent = 'PAUSA';
   pauseBtn.setAttribute('aria-pressed', 'false');
-  setStatus(`Rumbo a ${STOPS[segment + 1].name}`);
+  setStatus(flightStage === 'departure'
+    ? 'Carreteando por Av. 25 de Mayo'
+    : `Rumbo a ${STOPS[segment + 1].name}`);
   cancelAnimation();
   animationFrameId = requestAnimationFrame(animate);
 }
@@ -234,24 +315,26 @@ function start() {
 function reset(animateMap = true) {
   cancelAnimation();
   flightState = 'ready';
+  flightStage = 'departure';
+  departurePhase = 0;
   segment = 0;
   segmentStart = 0;
   pausedAt = 0;
   planeState = initialPlaneState();
   setStop(0);
-  setAltitude(0);
+  setAltitude(planeState.alt);
   startBtn.disabled = false;
   startBtn.textContent = 'DESPEGAR';
   pauseBtn.disabled = true;
   pauseBtn.textContent = 'PAUSA';
   pauseBtn.setAttribute('aria-pressed', 'false');
-  setStatus('Listo para despegar');
+  setStatus('Lista para carretear por Av. 25 de Mayo');
 
   const transition = {
-    center: [STOPS[0].lng, STOPS[0].lat],
-    zoom: 16.8,
-    pitch: 67,
-    bearing: -18,
+    center: [planeState.lng, planeState.lat],
+    zoom: 17.3,
+    pitch: 72,
+    bearing: planeState.bearing,
     duration: animateMap ? 1600 : 0,
     essential: false
   };
@@ -278,12 +361,17 @@ pauseBtn.addEventListener('click', () => {
     flightState = 'playing';
     pauseBtn.textContent = 'PAUSA';
     pauseBtn.setAttribute('aria-pressed', 'false');
-    setStatus(`Rumbo a ${STOPS[segment + 1].name}`);
+    setStatus(flightStage === 'departure'
+      ? departurePhase === 0
+        ? 'Carreteando por Av. 25 de Mayo'
+        : 'Carrera de despegue · Av. 25 de Mayo'
+      : `Rumbo a ${STOPS[segment + 1].name}`);
     animationFrameId = requestAnimationFrame(animate);
   }
 });
 
 setStop(0);
+setAltitude(planeState.alt);
 
 const loadTimeout = window.setTimeout(() => {
   if (!mapReady) setStatus('No se pudo cargar el mapa. Verificá tu conexión y reintentá.', true);
@@ -312,7 +400,7 @@ map.on('load', () => {
       .querySelector('.maplibregl-ctrl-attrib')
       ?.classList.remove('maplibregl-compact-show');
   }, 0);
-  setStatus('Listo para despegar');
+  setStatus('Lista para carretear por Av. 25 de Mayo');
 
   const layers = map.getStyle().layers || [];
   const firstLabel = layers.find(layer => layer.type === 'symbol');
@@ -339,7 +427,10 @@ map.on('load', () => {
       properties: {},
       geometry: {
         type: 'LineString',
-        coordinates: STOPS.map(stop => [stop.lng, stop.lat])
+        coordinates: [
+          ...DEPARTURE_PATH.map(point => [point.lng, point.lat]),
+          ...STOPS.slice(1).map(stop => [stop.lng, stop.lat])
+        ]
       }
     }
   });
@@ -402,6 +493,7 @@ function makeAircraftLayer() {
   let camera;
   let aircraft;
   let propellers = [];
+  let aircraftScale = 4.4;
 
   return {
     id: 'aircraft-3d',
@@ -433,16 +525,17 @@ function makeAircraftLayer() {
           scene.remove(aircraft);
           disposeObject(aircraft);
           aircraft = loadedAircraft;
+          aircraftScale = 8;
           propellers = loadedPropellers;
           scene.add(aircraft);
           document.documentElement.dataset.aircraftModel = 'c172p';
-          if (flightState === 'ready') setStatus('Cessna 172P lista para despegar');
+          if (flightState === 'ready') setStatus('Cessna 172P lista para carretear');
           map.triggerRepaint();
         },
         undefined,
         error => {
           console.error('No se pudo cargar la Cessna 172P; se conserva el modelo de respaldo.', error);
-          if (flightState === 'ready') setStatus('Listo para despegar · aeronave de respaldo');
+          if (flightState === 'ready') setStatus('Lista para carretear · aeronave de respaldo');
         }
       );
       scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 2.3));
@@ -459,8 +552,9 @@ function makeAircraftLayer() {
     },
     render(gl, args) {
       if (!aircraft) return;
+      aircraft.scale.setScalar(aircraftScale * (planeState.scale ?? 1));
       propellers.forEach(propeller => {
-        propeller.rotation.x += 0.55;
+        propeller.rotation.x += 0.12 + (planeState.throttle ?? 0.8) * 0.62;
       });
       const coordinate = maplibregl.MercatorCoordinate.fromLngLat(
         [planeState.lng, planeState.lat],
@@ -475,7 +569,9 @@ function makeAircraftLayer() {
         .makeRotationZ((-planeState.bearing + 90) * Math.PI / 180);
       const bank = new THREE.Matrix4()
         .makeRotationX(planeState.bank * Math.PI / 180);
-      camera.projectionMatrix = projection.multiply(local).multiply(rotation).multiply(bank);
+      const pitch = new THREE.Matrix4()
+        .makeRotationY(-(planeState.pitch ?? 0) * Math.PI / 180);
+      camera.projectionMatrix = projection.multiply(local).multiply(rotation).multiply(bank).multiply(pitch);
       renderer.resetState();
       renderer.render(scene, camera);
       map.triggerRepaint();
