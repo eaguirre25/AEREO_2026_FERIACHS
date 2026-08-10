@@ -102,6 +102,8 @@ test('las postas muestran nombres de localidades verificadas', () => {
       'Loma Hermosa'
     ]
   );
-  assert.equal(STOPS[8].name, 'CEAMSE');
-  assert.doesNotMatch(JSON.stringify(STOPS[8]), /descenso final|límite municipal/i);
+  assert.equal(STOPS[8].name, 'José L. Suárez');
+  assert.equal(STOPS[8].lat, -34.52213589682376);
+  assert.equal(STOPS[8].lng, -58.58094506418298);
+  assert.equal(STOPS[8].place, undefined);
 });

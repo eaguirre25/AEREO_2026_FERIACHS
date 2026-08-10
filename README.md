@@ -16,9 +16,9 @@ El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No r
 6. **Villa Ballester** — sobrevuelo
 7. **Villa Billinghurst** — sobrevuelo
 8. **Loma Hermosa** — sobrevuelo
-9. **CEAMSE — Complejo Ambiental Norte III** — descenso final
+9. **José L. Suárez** — cierre del recorrido
 
-El dirigible mantiene un movimiento continuo mediante una curva suave que atraviesa todas las postas sin detenerse. La altura y el zoom varían para que el territorio pueda reconocerse. CEAMSE funciona como cierre con descenso progresivo.
+El dirigible mantiene un movimiento continuo mediante una curva suave que atraviesa todas las postas sin detenerse. La altura y el zoom varían para que el territorio pueda reconocerse. José L. Suárez funciona como cierre con descenso progresivo.
 
 ## Ejecutar localmente
 
@@ -79,8 +79,8 @@ permanece detrás del vehículo durante el recorrido.
 
 Las postas muestran la localidad correspondiente al punto geográfico. Durante
 el vuelo, la localidad atravesada se resalta suavemente con una paleta roja,
-amarilla, azul, verde claro, naranja y violeta. El punto final de CEAMSE queda
-fuera de los polígonos suministrados y se identifica como límite municipal.
+amarilla, azul, verde claro, naranja y violeta. El punto final se ubica en
+José L. Suárez, según la coordenada suministrada para la Posta 9.
 UNSAM se identifica como límite Villa Maipú/Villa Lynch porque el campus y la
 maniobra inicial ocupan ambos lados de esa división.
 
@@ -90,7 +90,8 @@ de altura y con escala 0,54, tres veces mayor que en la versión anterior.
 La interfaz titula cada punto como `POSTA 1` a `POSTA 9` y asigna un color
 diferente al título, selector y marcador cartográfico. Los controles
 `RETROCEDER` y `AVANZAR` permiten saltar entre postas; `ELEVAR/CONTINUAR`
-conserva su función de reproducir el recorrido continuo.
+conserva su función de reproducir el recorrido continuo. La interfaz también
+permite alternar la experiencia en pantalla completa.
 
 La salida sobre la avenida 25 de Mayo está alineada con la dirección de la
 Posta 2, evitando la corrección brusca del prototipo anterior. La hélice de cola
