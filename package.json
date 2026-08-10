@@ -1,0 +1,13 @@
+{
+  "name": "aereo-2026-feriachs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check app.js && node --check boot.js && node --check route.js",
+    "test": "npm run check && node --test"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

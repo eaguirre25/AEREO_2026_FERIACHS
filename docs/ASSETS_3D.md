@@ -1,73 +1,47 @@
-# Búsqueda de aeronave 3D
+# Vehículo aéreo 3D
 
-## Objetivo
+## Decisión implementada
 
-Encontrar una **avioneta civil ligera**, preferentemente de ala alta (estética Cessna 152/172), apta para verse en tercera persona durante un recorrido aéreo guiado por General San Martín.
+El prototipo utiliza el **Airship de C2DH/zoomland** como vehículo principal.
+Es un dirigible moderno reconocible, suficientemente compacto para la cámara en
+tercera persona y adecuado para desplazamientos lentos sobre las nueve postas.
 
-## Requisitos
+## Fuente verificada
 
-- GLB/glTF preferido;
-- licencia abierta verificable;
-- suficientemente liviana para navegador y móvil;
-- hélice visible; idealmente separada o animable;
-- materiales/texturas incluidos;
-- geometría legible desde cámara posterior a distancia media.
+- Repositorio: [`C2DH/zoomland`](https://github.com/C2DH/zoomland).
+- Commit fijado: `c7d80ce5c35874b8549579b214de3ad2c4bb48d5`.
+- Asset original: `public/assets/models/Airship.glb`.
+- Licencia declarada por el repositorio: **GNU AGPL v3.0**.
+- Tamaño: aproximadamente 29 KB.
+- Compresión: `KHR_draco_mesh_compression`.
+- Mallas principales: `Airship` y `Fan`.
+- Materiales: `White`, `Red`, `Material`, `Metal`, `Logo` y `Logo_2`.
 
-## Candidatas verificadas
+El componente original `Airship.jsx` carga ese archivo y anima el nodo `Fan` de
+forma independiente. Tanto dicho componente como la licencia completa se
+conservan junto al asset en `assets/models/airship/`.
 
-### 1. Cessna 172P — FlightGear / c172p-team
+## Adaptación al simulador
 
-- Tipo: avioneta civil ligera, monomotor, ala alta.
-- Repositorio público: `c172p-team/c172p` en GitHub.
-- Estado: proyecto activo; GitHub lo describe como una versión altamente detallada de la Cessna 172P para FlightGear.
-- Licencia: el ecosistema oficial FlightGear exige contribuciones GPLv2+ compatibles; la Cessna 172P figura entre las aeronaves GPL de FlightGear.
-- Formato original: assets de FlightGear, no GLB directo; requiere extraer la geometría relevante y convertirla a glTF/GLB.
-- Adecuación visual: **muy alta**. Es exactamente el tipo de avioneta civil que se busca para una cámara de persecución.
-- Riesgo técnico: el modelo completo incluye cockpit, sistemas y recursos que no necesitamos; conviene generar una versión web simplificada conservando fuselaje, alas, tren, hélice y texturas externas.
+1. el GLB se conserva sin modificaciones binarias;
+2. `DRACOLoader` decodifica la geometría Draco en el navegador;
+3. el eje Y vertical del modelo original se transforma al eje Z del mapa;
+4. el dirigible se orienta según el rumbo geográfico de cada tramo;
+5. `Fan` gira de manera independiente y varía suavemente con el avance;
+6. `Logo` y `Logo_2` se neutralizan en tiempo de ejecución;
+7. una versión geométrica de respaldo evita que el recorrido quede sin vehículo;
+8. la cámara se sitúa detrás y ligeramente por encima del dirigible.
 
-**Prioridad: ALTA. Primera candidata para prototipo.**
+## Perfil de vuelo
 
-### 2. Cessna 182S Skylane — FlightGear
+La salida comienza con una elevación vertical desde UNSAM y continúa con un
+avance suave sobre la avenida 25 de Mayo. El recorrido trabaja principalmente
+entre 80 y 150 metros, reduce su velocidad en los extremos de cada tramo y hace
+una pasada lenta sobre el estadio de Chacarita sin detener la animación.
 
-- Tipo: avioneta civil utilitaria, cuatro plazas, monomotor, ala alta.
-- Licencia: **GPLv2+**, explicitada por la documentación de FlightGear.
-- Estado: FlightGear la cataloga como un modelo 3D avanzado y muy detallado.
-- Formato original: FlightGear; requiere conversión/optimización a GLB.
-- Adecuación visual: **muy alta**. Algo más robusta que una C172 y probablemente más visible desde cámara posterior.
-- Riesgo técnico: el modelo es detallado; debe reducirse antes de cargarlo en navegador.
+## Alternativas evaluadas
 
-**Prioridad: ALTA. Segunda candidata.**
-
-### 3. Otras aeronaves civiles del hangar oficial FlightGear
-
-El catálogo oficial incluye numerosas aeronaves civiles GPL adecuadas como reserva: Piper PA-28 Warrior II, Piper J3 Cub, Robin DR400, Cessna 182S, entre otras. Pueden evaluarse si la C172P o C182S resultan demasiado pesadas o complejas para convertir.
-
-## Fuentes descartadas como primera opción
-
-### AircraftVerse
-
-Dataset abierto con 27.714 diseños de vehículos aéreos bajo CC BY-SA. Incluye STL y CAD, pero gran parte del corpus está orientado a diseños experimentales/UAV y no ofrece necesariamente una avioneta civil texturizada lista para navegador. Se mantiene como reserva de geometrías.
-
-### Khronos glTF Sample Assets
-
-Es excelente para validar el pipeline GLB/glTF y ofrece modelos con licencias individuales claramente documentadas, pero no apareció una avioneta civil adecuada dentro del catálogo oficial.
-
-## Decisión actual
-
-Para el primer prototipo del recorrido se adopta esta prioridad:
-
-1. **Cessna 172P**;
-2. **Cessna 182S**;
-3. Piper/Robin civiles del hangar FlightGear como alternativas.
-
-La licencia GPL permite usar, modificar y redistribuir estos assets respetando sus obligaciones de licencia y atribución. Si se genera una versión derivada simplificada o convertida a GLB, debe conservarse la información de licencia y autores correspondiente junto al archivo.
-
-## Pipeline previsto
-
-1. obtener la geometría exterior de la aeronave elegida;
-2. eliminar cockpit y componentes invisibles desde tercera persona;
-3. conservar hélice como nodo separado si es posible;
-4. convertir a glTF/GLB;
-5. reducir geometría y texturas para web;
-6. guardar como `assets/models/aircraft.glb`;
-7. incluir `assets/models/LICENSE-aircraft.txt` con fuente, autores, licencia y modificaciones realizadas.
+- **Steampunk Blimp de APercy**: licencia del modelo explícita CC BY-SA 3.0,
+  pero requiere conversión de B3D a GLB.
+- **Cessna 172P de FlightGear**: se utilizó durante la fase inicial del
+  prototipo y fue retirada al adoptar el dirigible.
