@@ -44,6 +44,8 @@ const stopName = $('#stopName');
 const stopMeta = $('#stopMeta');
 const altitudeEl = $('#altitude');
 const statusEl = $('#status');
+const satelliteCredit = $('#satelliteCredit');
+const mapModeBtn = $('#mapModeBtn');
 const startBtn = $('#startBtn');
 const pauseBtn = $('#pauseBtn');
 const restartBtn = $('#restartBtn');
@@ -58,6 +60,8 @@ let pausedAt = 0;
 let animationFrameId = null;
 let planeState = initialPlaneState();
 let mapReady = false;
+let satelliteEnabled = true;
+let vectorFillLayers = [];
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
@@ -89,6 +93,33 @@ function setAltitude(altitude) {
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
   statusEl.classList.toggle('error', isError);
+}
+
+function setMapMode(useSatellite) {
+  if (!map.getLayer('satellite-imagery')) return;
+  satelliteEnabled = useSatellite;
+  map.setLayoutProperty(
+    'satellite-imagery',
+    'visibility',
+    satelliteEnabled ? 'visible' : 'none'
+  );
+  vectorFillLayers.forEach(layer => {
+    if (map.getLayer(layer.id)) {
+      map.setLayoutProperty(
+        layer.id,
+        'visibility',
+        satelliteEnabled ? 'none' : layer.visibility
+      );
+    }
+  });
+  mapModeBtn.textContent = satelliteEnabled ? 'SATÉLITE' : 'MAPA';
+  mapModeBtn.setAttribute('aria-pressed', String(satelliteEnabled));
+  mapModeBtn.setAttribute(
+    'aria-label',
+    satelliteEnabled ? 'Usar mapa vectorial' : 'Usar vista satelital'
+  );
+  mapModeBtn.classList.toggle('active', satelliteEnabled);
+  satelliteCredit.hidden = !satelliteEnabled;
 }
 
 function cancelAnimation() {
@@ -350,6 +381,7 @@ function reset(animateMap = true) {
 
 startBtn.addEventListener('click', start);
 restartBtn.addEventListener('click', () => reset());
+mapModeBtn.addEventListener('click', () => setMapMode(!satelliteEnabled));
 pauseBtn.addEventListener('click', () => {
   if (flightState === 'playing') {
     flightState = 'paused';
@@ -408,7 +440,37 @@ map.on('load', () => {
   setStatus('Dirigible listo para elevarse desde UNSAM');
 
   const layers = map.getStyle().layers || [];
+  vectorFillLayers = layers
+    .filter(layer => layer.type === 'fill')
+    .map(layer => ({
+      id: layer.id,
+      visibility: layer.layout?.visibility ?? 'visible'
+    }));
   const firstLabel = layers.find(layer => layer.type === 'symbol');
+  const firstReference = layers.find(layer => layer.type === 'line') ?? firstLabel;
+  map.addSource('satellite-imagery', {
+    type: 'raster',
+    tiles: [
+      'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+    ],
+    tileSize: 256,
+    maxzoom: 19,
+    attribution: 'Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+  });
+  map.addLayer({
+    id: 'satellite-imagery',
+    type: 'raster',
+    source: 'satellite-imagery',
+    layout: { visibility: 'visible' },
+    paint: {
+      'raster-opacity': 0.9,
+      'raster-saturation': -0.12,
+      'raster-contrast': 0.08,
+      'raster-fade-duration': 0
+    }
+  }, firstReference?.id);
+  mapModeBtn.disabled = false;
+  setMapMode(true);
   if (map.getSource('openmaptiles')) {
     map.addLayer({
       id: '3d-buildings',

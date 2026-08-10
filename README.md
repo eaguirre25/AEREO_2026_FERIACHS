@@ -4,7 +4,7 @@ Experiencia web 3D guiada por el Partido de General San Martín, Buenos Aires.
 
 ## Prototipo funcional
 
-El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No requiere API key para la base cartográfica. El vehículo principal es el **Airship de C2DH/zoomland**, un dirigible GLB comprimido con Draco bajo AGPL-3.0. Si el asset no puede cargarse, la aplicación conserva automáticamente un dirigible geométrico liviano como respaldo.
+El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No requiere API key para la base cartográfica. El modo híbrido combina imágenes satelitales de Esri con las calles y referencias vectoriales actuales; puede alternarse con el mapa tradicional. El vehículo principal es el **Airship de C2DH/zoomland**, un dirigible GLB comprimido con Draco bajo AGPL-3.0. Si el asset no puede cargarse, la aplicación conserva automáticamente un dirigible geométrico liviano como respaldo.
 
 ## Las 9 postas
 
