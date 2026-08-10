@@ -1,4 +1,5 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.178.0/+esm';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { STOPS, SEGMENT_SECONDS, CRUISE_ALTITUDE } from './route.js';
 
 const initialPlaneState = () => ({
@@ -167,7 +168,7 @@ function interpolate(a, b, progress) {
 
 function cameraFollow(position) {
   const radians = (position.bearing + 180) * Math.PI / 180;
-  const distance = 0.00055;
+  const distance = 0.00035;
   const center = [
     position.lng + Math.sin(radians) * distance,
     position.lat + Math.cos(radians) * distance
@@ -400,7 +401,7 @@ function makeAircraftLayer() {
   let scene;
   let camera;
   let aircraft;
-  let propeller;
+  let propellers = [];
 
   return {
     id: 'aircraft-3d',
@@ -409,40 +410,41 @@ function makeAircraftLayer() {
     onAdd(layerMap, gl) {
       camera = new THREE.Camera();
       scene = new THREE.Scene();
-      const accent = new THREE.MeshStandardMaterial({ color: 0xff4f2e, roughness: 0.48 });
-      const dark = new THREE.MeshStandardMaterial({ color: 0x18262d, roughness: 0.7 });
-      aircraft = new THREE.Group();
-
-      const body = new THREE.Mesh(new THREE.CapsuleGeometry(1, 5.8, 8, 16), accent);
-      body.rotation.z = Math.PI / 2;
-      aircraft.add(body);
-
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(1, 11.5, 0.22), dark);
-      wing.position.set(0, 0, 1.05);
-      aircraft.add(wing);
-
-      const tail = new THREE.Mesh(new THREE.BoxGeometry(0.7, 4.2, 0.18), accent);
-      tail.position.set(-3.2, 0, 0.45);
-      aircraft.add(tail);
-
-      const fin = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.18, 1.7), accent);
-      fin.position.set(-3.35, 0, 1.05);
-      fin.rotation.y = -0.25;
-      aircraft.add(fin);
-
-      const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.82, 1.2, 16), dark);
-      nose.rotation.z = Math.PI / 2;
-      nose.position.x = 3.25;
-      aircraft.add(nose);
-
-      propeller = new THREE.Group();
-      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.14, 4.5, 0.18), dark);
-      propeller.add(blade);
-      propeller.position.x = 3.9;
-      aircraft.add(propeller);
-
+      const fallback = createFallbackAircraft();
+      aircraft = fallback.aircraft;
+      propellers = fallback.propellers;
       aircraft.scale.setScalar(4.4);
       scene.add(aircraft);
+      document.documentElement.dataset.aircraftModel = 'fallback';
+
+      new GLTFLoader().load(
+        './assets/models/c172p/aircraft.glb',
+        gltf => {
+          const loadedAircraft = gltf.scene;
+          const loadedPropellers = [];
+          loadedAircraft.traverse(object => {
+            object.frustumCulled = false;
+            if (object.name.startsWith('Propeller')) loadedPropellers.push(object);
+            if (object.isMesh && object.material?.color) {
+              object.material.color.lerp(new THREE.Color(0xff6a32), 0.28);
+            }
+          });
+          loadedAircraft.scale.setScalar(8);
+          scene.remove(aircraft);
+          disposeObject(aircraft);
+          aircraft = loadedAircraft;
+          propellers = loadedPropellers;
+          scene.add(aircraft);
+          document.documentElement.dataset.aircraftModel = 'c172p';
+          if (flightState === 'ready') setStatus('Cessna 172P lista para despegar');
+          map.triggerRepaint();
+        },
+        undefined,
+        error => {
+          console.error('No se pudo cargar la Cessna 172P; se conserva el modelo de respaldo.', error);
+          if (flightState === 'ready') setStatus('Listo para despegar · aeronave de respaldo');
+        }
+      );
       scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 2.3));
       const sun = new THREE.DirectionalLight(0xffffff, 2);
       sun.position.set(20, -20, 40);
@@ -457,7 +459,9 @@ function makeAircraftLayer() {
     },
     render(gl, args) {
       if (!aircraft) return;
-      propeller.rotation.x += 0.55;
+      propellers.forEach(propeller => {
+        propeller.rotation.x += 0.55;
+      });
       const coordinate = maplibregl.MercatorCoordinate.fromLngLat(
         [planeState.lng, planeState.lat],
         planeState.alt
@@ -477,4 +481,46 @@ function makeAircraftLayer() {
       map.triggerRepaint();
     }
   };
+}
+
+function createFallbackAircraft() {
+  const accent = new THREE.MeshStandardMaterial({ color: 0xff4f2e, roughness: 0.48 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x18262d, roughness: 0.7 });
+  const aircraft = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(1, 5.8, 8, 16), accent);
+  body.rotation.z = Math.PI / 2;
+  aircraft.add(body);
+
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(1, 11.5, 0.22), dark);
+  wing.position.set(0, 0, 1.05);
+  aircraft.add(wing);
+
+  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.7, 4.2, 0.18), accent);
+  tail.position.set(-3.2, 0, 0.45);
+  aircraft.add(tail);
+
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.18, 1.7), accent);
+  fin.position.set(-3.35, 0, 1.05);
+  fin.rotation.y = -0.25;
+  aircraft.add(fin);
+
+  const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.82, 1.2, 16), dark);
+  nose.rotation.z = Math.PI / 2;
+  nose.position.x = 3.25;
+  aircraft.add(nose);
+
+  const propeller = new THREE.Group();
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.14, 4.5, 0.18), dark);
+  propeller.add(blade);
+  propeller.position.x = 3.9;
+  aircraft.add(propeller);
+  return { aircraft, propellers: [propeller] };
+}
+
+function disposeObject(object) {
+  object.traverse(child => {
+    child.geometry?.dispose();
+    const materials = Array.isArray(child.material) ? child.material : [child.material];
+    materials.filter(Boolean).forEach(material => material.dispose());
+  });
 }

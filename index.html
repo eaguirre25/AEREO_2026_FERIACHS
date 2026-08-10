@@ -24,9 +24,18 @@
   <nav id="routeNav" class="route-nav" aria-label="Postas del recorrido"></nav>
   <div class="altimeter"><span>ALT</span><strong id="altitude">0 m</strong></div>
   <div id="status" class="status" role="status" aria-live="polite">Preparando aeronave…</div>
+  <a class="aircraft-credit" href="https://github.com/c172p-team/c172p" target="_blank" rel="license noopener">C172P · FlightGear · GPL-2.0</a>
   <noscript>Esta experiencia necesita JavaScript para mostrar el mapa y el recorrido 3D.</noscript>
   <script src="boot.js"></script>
   <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.178.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.178.0/examples/jsm/"
+      }
+    }
+  </script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

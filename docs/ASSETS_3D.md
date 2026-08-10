@@ -52,9 +52,16 @@ Dataset abierto con 27.714 diseños de vehículos aéreos bajo CC BY-SA. Incluye
 
 Es excelente para validar el pipeline GLB/glTF y ofrece modelos con licencias individuales claramente documentadas, pero no apareció una avioneta civil adecuada dentro del catálogo oficial.
 
-## Decisión actual
+## Decisión implementada
 
-Para el primer prototipo del recorrido se adopta esta prioridad:
+Se incorporó la **Cessna 172P** como aeronave principal. La Cessna 182S y las
+Piper/Robin permanecen como alternativas si más adelante se necesitan variantes.
+
+La versión web está en `assets/models/c172p/aircraft.glb`; incluye licencia,
+créditos, fuente filtrada y una nota de modificaciones. La aplicación conserva
+un modelo geométrico de respaldo para fallos de carga.
+
+La prioridad evaluada fue:
 
 1. **Cessna 172P**;
 2. **Cessna 182S**;
@@ -62,12 +69,12 @@ Para el primer prototipo del recorrido se adopta esta prioridad:
 
 La licencia GPL permite usar, modificar y redistribuir estos assets respetando sus obligaciones de licencia y atribución. Si se genera una versión derivada simplificada o convertida a GLB, debe conservarse la información de licencia y autores correspondiente junto al archivo.
 
-## Pipeline previsto
+## Pipeline aplicado
 
-1. obtener la geometría exterior de la aeronave elegida;
-2. eliminar cockpit y componentes invisibles desde tercera persona;
-3. conservar hélice como nodo separado si es posible;
-4. convertir a glTF/GLB;
-5. reducir geometría y texturas para web;
-6. guardar como `assets/models/aircraft.glb`;
-7. incluir `assets/models/LICENSE-aircraft.txt` con fuente, autores, licencia y modificaciones realizadas.
+1. se fijó el commit de origen de `c172p-team/c172p`;
+2. se filtraron cockpit, paneles, hotspots y accesorios de tierra;
+3. se conservó la hélice como nodo separado y animable;
+4. se convirtieron geometría y ejes a glTF/GLB;
+5. se redujeron las texturas a un máximo de 1024 píxeles;
+6. se guardó el resultado en `assets/models/c172p/aircraft.glb`;
+7. se conservaron licencia, autores, fuente filtrada y modificaciones junto al archivo.

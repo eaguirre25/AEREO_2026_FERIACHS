@@ -4,7 +4,7 @@ Experiencia web 3D guiada por el Partido de General San Martín, Buenos Aires.
 
 ## Prototipo funcional
 
-El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No requiere API key para la base cartográfica. La aeronave actual es un modelo 3D liviano generado con geometrías Three.js para validar vuelo, cámara, escala y rendimiento. Está preparado para sustituirse por la Cessna abierta definitiva cuando terminemos la conversión a GLB.
+El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No requiere API key para la base cartográfica. La aeronave principal es una **Cessna 172P de FlightGear**, convertida y optimizada como GLB bajo GPL-2.0. Si el asset no puede cargarse, la aplicación conserva automáticamente una avioneta geométrica liviana como respaldo.
 
 ## Las 9 postas
 
@@ -49,11 +49,15 @@ Villa Billinghurst permanezca dentro de sus límites cartográficos.
 - `route.js` — coordenadas, alturas y tiempos de las postas
 - `app.js` — mapa 3D, avión, cámara y animación
 - `docs/ASSETS_3D.md` — evaluación de aeronaves abiertas
+- `docs/CUSTOM_3D.md` — incorporación futura de modelos propios al mapa
 - `.github/workflows/pages.yml` — despliegue automático en GitHub Pages desde `main`
 
-## Próximo reemplazo de aeronave
+## Aeronave 3D
 
-Prioridad actual: **Cessna 172P de FlightGear**, seguida por Cessna 182S. El modelo exterior se convertirá/optimizará a glTF/GLB conservando atribución y licencia correspondiente. Hasta entonces el prototipo no depende de ningún asset binario externo.
+La Cessna 172P deriva de `c172p-team/c172p`. Se distribuye con su licencia,
+créditos, fuente exterior filtrada y una nota completa de modificaciones en
+`assets/models/c172p/`. La conversión puede reproducirse con
+`scripts/convert_ac3d_to_glb.py`.
 
 ## Publicación
 
