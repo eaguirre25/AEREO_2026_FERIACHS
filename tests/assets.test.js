@@ -112,3 +112,17 @@ test('la escena carga y anima la hélice de feria', async () => {
   assert.match(source, /getObjectByName\('aspas_rotativas'\)/);
   assert.match(source, /dataset\.propellerModel = 'feria'/);
 });
+
+test('la pantalla omite rótulos de vuelo y celebra la Posta 9', async () => {
+  const [source, html] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8')
+  ]);
+  assert.doesNotMatch(html, /AÉREO 2026 · GENERAL SAN MARTÍN/);
+  assert.doesNotMatch(source, /stopMeta\.textContent\s*=.*stop\.label/);
+  assert.match(html, /id="celebration"/);
+  assert.match(html, /¡RECORRIDO COMPLETADO!/);
+  assert.match(source, /function triggerCelebration\(\)/);
+  assert.match(source, /if \(isLastStop\) triggerCelebration\(\)/);
+  assert.match(source, /function completeFlight\(\)[\s\S]*triggerCelebration\(\)/);
+});

@@ -75,6 +75,8 @@ const startBtn = $('#startBtn');
 const pauseBtn = $('#pauseBtn');
 const restartBtn = $('#restartBtn');
 const nav = $('#routeNav');
+const celebration = $('#celebration');
+const confetti = $('#confetti');
 
 let flightState = 'ready';
 let flightStage = 'departure';
@@ -92,6 +94,7 @@ let lastTrailSample = 0;
 let localitiesData = null;
 let activeLocalityId = null;
 let currentStopIndex = 0;
+let celebrationTimer = null;
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
@@ -114,7 +117,8 @@ function setStop(index) {
   currentStopIndex = index;
   const postaColor = POSTA_COLORS[index];
   stopName.textContent = `POSTA ${stop.id}`;
-  stopMeta.textContent = `${stop.name.toUpperCase()} · ${stop.label}`;
+  const place = stop.place && stop.place !== stop.name ? ` · ${stop.place}` : '';
+  stopMeta.textContent = `${stop.name}${place}`.toUpperCase();
   stopName.style.setProperty('--posta-color', postaColor);
   document.documentElement.style.setProperty('--active-posta-color', postaColor);
   prevStopBtn.disabled = index === 0;
@@ -187,6 +191,37 @@ function cancelAnimation() {
   animationFrameId = null;
 }
 
+function cancelCelebration() {
+  window.clearTimeout(celebrationTimer);
+  celebrationTimer = null;
+  celebration.classList.remove('active');
+  celebration.setAttribute('aria-hidden', 'true');
+}
+
+function triggerCelebration() {
+  cancelCelebration();
+  confetti.replaceChildren();
+  const reach = Math.hypot(window.innerWidth, window.innerHeight);
+
+  for (let index = 0; index < 110; index += 1) {
+    const piece = document.createElement('i');
+    const angle = Math.random() * Math.PI * 2;
+    const distance = reach * (0.28 + Math.random() * 0.46);
+    piece.style.setProperty('--dx', `${Math.cos(angle) * distance}px`);
+    piece.style.setProperty('--dy', `${Math.sin(angle) * distance}px`);
+    piece.style.setProperty('--turn', `${360 + Math.random() * 1080}deg`);
+    piece.style.setProperty('--delay', `${Math.random() * 0.42}s`);
+    piece.style.setProperty('--duration', `${2.2 + Math.random() * 1.8}s`);
+    piece.style.setProperty('--piece-color', POSTA_COLORS[index % POSTA_COLORS.length]);
+    confetti.appendChild(piece);
+  }
+
+  void celebration.offsetWidth;
+  celebration.classList.add('active');
+  celebration.setAttribute('aria-hidden', 'false');
+  celebrationTimer = window.setTimeout(cancelCelebration, 6500);
+}
+
 function previewStop(index) {
   cancelAnimation();
   const stop = STOPS[index];
@@ -229,6 +264,8 @@ function previewStop(index) {
   setStatus(isLastStop
     ? 'Recorrido completo · CEAMSE'
     : index === 0 ? 'Dirigible listo para elevarse desde UNSAM' : `Vista previa · ${stop.name}`);
+  if (isLastStop) triggerCelebration();
+  else cancelCelebration();
 
   map.flyTo({
     ...thirdPersonView(planeState),
@@ -467,6 +504,7 @@ function completeFlight() {
   startBtn.disabled = false;
   startBtn.textContent = 'VOLVER A VOLAR';
   setStatus('Recorrido completo · CEAMSE');
+  triggerCelebration();
   map.easeTo({ zoom: 14.7, pitch: 62, duration: 2500, essential: false });
 }
 
@@ -539,6 +577,7 @@ function start() {
 
 function reset(animateMap = true) {
   cancelAnimation();
+  cancelCelebration();
   flightState = 'ready';
   flightStage = 'departure';
   departurePhase = 0;
@@ -885,6 +924,7 @@ function makeLandmarkLayer(config) {
   let scene;
   let camera;
   let model;
+  let renderedAltitude = config.altitude ?? 0;
 
   return {
     id: `landmark-3d-${config.id}`,
@@ -924,9 +964,24 @@ function makeLandmarkLayer(config) {
     },
     render(gl, args) {
       if (!model) return;
+      let targetAltitude = config.altitude ?? 0;
+      if (config.avoidAirship) {
+        const averageLatitude = (config.lat + planeState.lat) * Math.PI / 360;
+        const metersPerLongitudeDegree = Math.cos(averageLatitude) * 111320;
+        const distance = Math.hypot(
+          (config.lng - planeState.lng) * metersPerLongitudeDegree,
+          (config.lat - planeState.lat) * 111320
+        );
+        const proximity = 1 - Math.min(1, Math.max(0, (distance - 120) / 520));
+        targetAltitude = Math.max(
+          targetAltitude,
+          planeState.alt + (config.clearance ?? 220) * proximity
+        );
+      }
+      renderedAltitude += (targetAltitude - renderedAltitude) * 0.08;
       const coordinate = maplibregl.MercatorCoordinate.fromLngLat(
         [config.lng, config.lat],
-        config.altitude ?? 0
+        renderedAltitude
       );
       const units = coordinate.meterInMercatorCoordinateUnits();
       const projection = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
