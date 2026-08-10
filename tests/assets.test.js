@@ -77,3 +77,16 @@ test('la escena duplica el dirigible y resalta la localidad activa', async () =>
   assert.match(source, /feature-state', 'active'/);
   assert.match(source, /LOCALITY_COLORS/);
 });
+
+test('la interfaz permite avanzar y retroceder entre nueve postas coloreadas', async () => {
+  const [source, html] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8')
+  ]);
+  assert.match(html, /id="prevStopBtn"[^>]*>← RETROCEDER<\/button>/);
+  assert.match(html, /id="nextStopBtn"[^>]*>AVANZAR →<\/button>/);
+  assert.match(source, /const POSTA_COLORS = \[/);
+  assert.match(source, /stepToStop\(-1\)/);
+  assert.match(source, /stepToStop\(1\)/);
+  assert.match(source, /stopName\.textContent = `POSTA \$\{stop\.id\}`/);
+});

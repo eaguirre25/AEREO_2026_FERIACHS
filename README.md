@@ -87,6 +87,11 @@ maniobra inicial ocupan ambos lados de esa división.
 El logo UNSAM está ubicado en `-34.57850707883743, -58.52687013509144`, a 90 m
 de altura y con escala 0,54, tres veces mayor que en la versión anterior.
 
+La interfaz titula cada punto como `POSTA 1` a `POSTA 9` y asigna un color
+diferente al título, selector y marcador cartográfico. Los controles
+`RETROCEDER` y `AVANZAR` permiten saltar entre postas; `ELEVAR/CONTINUAR`
+conserva su función de reproducir el recorrido continuo.
+
 ## Publicación
 
 Al fusionar el prototipo a `main`, GitHub Actions despliega automáticamente el sitio mediante GitHub Pages.
