@@ -10,9 +10,17 @@ import {
   LANDMARKS
 } from './route.js';
 
-const AIRSHIP_BASE_SCALE = 8.4;
+const AIRSHIP_BASE_SCALE = 16.8;
 const TRAIL_MAX_POINTS = 42;
 const TRAIL_SAMPLE_MS = 140;
+const LOCALITY_COLORS = [
+  '#e53935',
+  '#f4d03f',
+  '#2f80ed',
+  '#8bdc65',
+  '#f28c28',
+  '#8e5bd9'
+];
 
 const initialPlaneState = () => ({
   lng: DEPARTURE_PATH[0].lng,
@@ -68,11 +76,13 @@ let satelliteEnabled = true;
 let vectorFillLayers = [];
 let trailHistory = [initialPlaneState()];
 let lastTrailSample = 0;
+let localitiesData = null;
+let activeLocalityId = null;
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
   button.type = 'button';
-  button.textContent = String(index + 1).padStart(2, '0');
+  button.textContent = stop.name;
   button.setAttribute('aria-label', `Posta ${index + 1}: ${stop.name}`);
   button.addEventListener('click', () => previewStop(index));
   nav.appendChild(button);
@@ -161,6 +171,7 @@ function previewStop(index) {
   trailHistory = [{ lng: planeState.lng, lat: planeState.lat, alt: planeState.alt }];
   lastTrailSample = 0;
   syncTrailSource();
+  updateActiveLocality(planeState);
 
   setStop(index);
   setAltitude(planeState.alt);
@@ -263,6 +274,54 @@ function syncTrailSource() {
     properties: {},
     geometry: { type: 'LineString', coordinates }
   });
+}
+
+function pointInRing([x, y], ring) {
+  let inside = false;
+  for (let index = 0, previous = ring.length - 1; index < ring.length; previous = index, index += 1) {
+    const [currentX, currentY] = ring[index];
+    const [previousX, previousY] = ring[previous];
+    const crosses = (currentY > y) !== (previousY > y)
+      && x < (previousX - currentX) * (y - currentY) / (previousY - currentY) + currentX;
+    if (crosses) inside = !inside;
+  }
+  return inside;
+}
+
+function pointInPolygon(point, polygon) {
+  return pointInRing(point, polygon[0])
+    && !polygon.slice(1).some(ring => pointInRing(point, ring));
+}
+
+function featureContainsPosition(feature, position) {
+  const point = [position.lng, position.lat];
+  const polygons = feature.geometry.type === 'Polygon'
+    ? [feature.geometry.coordinates]
+    : feature.geometry.coordinates;
+  return polygons.some(polygon => pointInPolygon(point, polygon));
+}
+
+function updateActiveLocality(position) {
+  if (!mapReady || !localitiesData || !map.getSource('localidades-san-martin')) return;
+  const activeFeature = localitiesData.features.find(feature =>
+    featureContainsPosition(feature, position)
+  );
+  const nextId = activeFeature?.properties.id ?? null;
+  if (nextId === activeLocalityId) return;
+  if (activeLocalityId !== null) {
+    map.setFeatureState(
+      { source: 'localidades-san-martin', id: activeLocalityId },
+      { active: false }
+    );
+  }
+  if (nextId !== null) {
+    map.setFeatureState(
+      { source: 'localidades-san-martin', id: nextId },
+      { active: true }
+    );
+  }
+  activeLocalityId = nextId;
+  document.documentElement.dataset.activeLocality = activeFeature?.properties.Localidad ?? 'outside';
 }
 
 function interpolate(a, b, progress) {
@@ -387,6 +446,7 @@ function animate(now) {
   }
   setAltitude(planeState.alt);
   recordTrail(planeState, now);
+  updateActiveLocality(planeState);
   cameraFollow(planeState);
   map.triggerRepaint();
 
@@ -445,6 +505,7 @@ function reset(animateMap = true) {
   trailHistory = [{ lng: planeState.lng, lat: planeState.lat, alt: planeState.alt }];
   lastTrailSample = 0;
   syncTrailSource();
+  updateActiveLocality(planeState);
   setStop(0);
   setAltitude(planeState.alt);
   startBtn.disabled = false;
@@ -583,7 +644,8 @@ map.on('load', () => {
 
   map.addSource('localidades-san-martin', {
     type: 'geojson',
-    data: './assets/data/san-martin-localidades.geojson'
+    data: './assets/data/san-martin-localidades.geojson',
+    promoteId: 'id'
   });
   map.addLayer({
     id: 'localidades-fill',
@@ -591,14 +653,24 @@ map.on('load', () => {
     source: 'localidades-san-martin',
     paint: {
       'fill-color': [
-        'match', ['get', 'siglas'],
-        'SM', '#ff5a36',
-        'VL', '#25b5c5',
-        'SA', '#ffc857',
-        'VB', '#8ad36b',
-        '#9d7adf'
+        'match', ['get', 'id'],
+        1, LOCALITY_COLORS[0],
+        2, LOCALITY_COLORS[1],
+        3, LOCALITY_COLORS[2],
+        4, LOCALITY_COLORS[3],
+        5, LOCALITY_COLORS[4],
+        6, LOCALITY_COLORS[5],
+        7, LOCALITY_COLORS[0],
+        8, LOCALITY_COLORS[1],
+        LOCALITY_COLORS[2]
       ],
-      'fill-opacity': 0.1
+      'fill-opacity': [
+        'case',
+        ['boolean', ['feature-state', 'active'], false],
+        0.24,
+        0.045
+      ],
+      'fill-opacity-transition': { duration: 900, delay: 0 }
     }
   }, firstLabel?.id);
   map.addLayer({
@@ -606,11 +678,33 @@ map.on('load', () => {
     type: 'line',
     source: 'localidades-san-martin',
     paint: {
-      'line-color': '#ffd45a',
-      'line-width': ['interpolate', ['linear'], ['zoom'], 11, 1.2, 16, 3],
-      'line-opacity': 0.9
+      'line-color': [
+        'case',
+        ['boolean', ['feature-state', 'active'], false],
+        '#fff4c2',
+        'rgba(255,255,255,0.48)'
+      ],
+      'line-width': [
+        'case',
+        ['boolean', ['feature-state', 'active'], false],
+        3.2,
+        1.2
+      ],
+      'line-opacity': 0.82,
+      'line-width-transition': { duration: 900, delay: 0 },
+      'line-color-transition': { duration: 900, delay: 0 }
     }
   });
+  fetch('./assets/data/san-martin-localidades.geojson')
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      localitiesData = data;
+      updateActiveLocality(planeState);
+    })
+    .catch(error => console.error('No se pudo activar el seguimiento de localidades.', error));
   map.addLayer({
     id: 'localidades-label',
     type: 'symbol',
