@@ -1,13 +1,13 @@
 export const STOPS = [
-  {id:1,name:'Villa Maipú / Villa Lynch',label:'UNSAM · LÍMITE LOCAL',place:'UNSAM · Campus Miguelete',lng:-58.5266950692,lat:-34.5798390695,alt:55,zoom:17.2},
-  {id:2,name:'Villa Lynch',label:'SOBREVUELO',place:'Villa Lynch',lng:-58.523437722,lat:-34.590146441,alt:135,zoom:15.7},
-  {id:3,name:'San Martín',label:'CENTRO · SOBREVUELO',place:'San Martín centro',lng:-58.542014482,lat:-34.579698685,alt:120,zoom:16.0},
-  {id:4,name:'Villa Maipú',label:'CHACARITA · PASADA LENTA',place:'Estadio de Chacarita Juniors',lng:-58.52820,lat:-34.56734,alt:95,zoom:16.4},
-  {id:5,name:'San Andrés',label:'SOBREVUELO',lng:-58.54448,lat:-34.56521,alt:125,zoom:15.9},
-  {id:6,name:'Villa Ballester',label:'SOBREVUELO',lng:-58.5580651,lat:-34.5492309,alt:135,zoom:15.8},
-  {id:7,name:'Billinghurst',label:'SOBREVUELO',place:'Villa Billinghurst',lng:-58.5747487,lat:-34.5752034,alt:120,zoom:15.8},
-  {id:8,name:'Loma Hermosa',label:'SOBREVUELO',lng:-58.5993659,lat:-34.5492367,alt:145,zoom:15.4},
-  {id:9,name:'José L. Suárez',lng:-58.58094506418298,lat:-34.52213589682376,alt:70,zoom:15.5}
+  {id:1,name:'Villa Maipú / Villa Lynch',title:'Punto de partida',label:'UNSAM · LÍMITE LOCAL',place:'UNSAM · Campus Miguelete',lng:-58.5266950692,lat:-34.5798390695,alt:55,zoom:17.2},
+  {id:2,name:'Villa Lynch',title:'Mirador: afinar lo que vemos',label:'SOBREVUELO',place:'Villa Lynch',lng:-58.523437722,lat:-34.590146441,alt:135,zoom:15.7},
+  {id:3,name:'San Martín',title:'Situación problemática',label:'CENTRO · SOBREVUELO',place:'San Martín centro',lng:-58.542014482,lat:-34.579698685,alt:120,zoom:16.0},
+  {id:4,name:'Villa Maipú',title:'Pregunta de investigación',label:'CHACARITA · PASADA LENTA',place:'Estadio de Chacarita Juniors',lng:-58.52820,lat:-34.56734,alt:95,zoom:16.4},
+  {id:5,name:'San Andrés',title:'Objetivos',label:'SOBREVUELO',lng:-58.54448,lat:-34.56521,alt:125,zoom:15.9},
+  {id:6,name:'Villa Ballester',title:'Hipótesis',label:'SOBREVUELO',lng:-58.5580651,lat:-34.5492309,alt:135,zoom:15.8},
+  {id:7,name:'Billinghurst',title:'Antecedentes',label:'SOBREVUELO',place:'Villa Billinghurst',lng:-58.5747487,lat:-34.5752034,alt:120,zoom:15.8},
+  {id:8,name:'Loma Hermosa',title:'Equipaje metodológico',label:'SOBREVUELO',lng:-58.5993659,lat:-34.5492367,alt:145,zoom:15.4},
+  {id:9,name:'José L. Suárez',title:'Conclusiones',lng:-58.58094506418298,lat:-34.52213589682376,alt:70,zoom:15.5}
 ];
 
 export const SEGMENT_SECONDS = [18,22,22,20,22,24,28,26];

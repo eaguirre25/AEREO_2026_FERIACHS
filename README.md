@@ -27,6 +27,10 @@ incluye las siete placas “Mirador: afinar lo que vemos” copiadas del reposit
 `COMOCREAMOS_MAPA_FERIA_2026`; las demás postas quedan preparadas con paneles
 oscuros translúcidos hasta recibir contenido.
 
+Cada cartel conserva el título temático de su posta en el recorrido original y
+muestra debajo una cuenta regresiva en días hasta la feria, sin revelar la fecha
+exacta en pantalla.
+
 ## Ejecutar localmente
 
 Como `app.js` usa módulos ES, servir la carpeta con un servidor HTTP simple:

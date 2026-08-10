@@ -100,7 +100,7 @@ button:focus-visible {
   position: fixed;
   top: max(24px, env(safe-area-inset-top));
   left: 28px;
-  z-index: 5;
+  z-index: 8;
   max-width: calc(100vw - 180px);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 18px;
@@ -135,6 +135,19 @@ button:focus-visible {
   transition: color 500ms ease, text-shadow 500ms ease;
 }
 
+.stop-theme {
+  display: block;
+  max-width: min(720px, calc(100vw - 220px));
+  margin-top: 5px;
+  color: #ffd43b;
+  font-size: clamp(15px, 1.8vw, 23px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 12px rgba(255, 212, 59, 0.55), 0 2px 8px #000;
+  white-space: normal;
+}
+
 .stop-material-trigger small {
   display: block;
   margin-top: 3px;
@@ -153,6 +166,29 @@ button:focus-visible {
   letter-spacing: 0.16em;
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.48), 0 2px 8px #000;
   pointer-events: none;
+}
+
+.fair-countdown {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  color: #d9f6ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-shadow: 0 2px 8px #000;
+}
+
+.fair-countdown strong {
+  color: var(--active-posta-color, #fff);
+  font-size: clamp(25px, 3vw, 36px);
+  line-height: 0.8;
+  letter-spacing: 0;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--active-posta-color, #fff) 65%, transparent), 0 2px 8px #000;
+  transition: color 500ms ease, text-shadow 500ms ease;
 }
 
 .controls {
@@ -619,16 +655,22 @@ noscript {
   .setup-actions { grid-template-columns: 1fr; }
 
   .hud {
-    top: max(18px, env(safe-area-inset-top));
+    top: max(14px, env(safe-area-inset-top));
     left: 16px;
     max-width: calc(100vw - 112px);
     border-radius: 14px;
-    padding: 10px 12px 9px;
+    padding: 8px 12px 7px;
   }
 
   .stop-name {
     font-size: clamp(24px, 8vw, 34px);
     line-height: 1;
+  }
+
+  .stop-theme {
+    max-width: 100%;
+    margin-top: 3px;
+    font-size: 12px;
   }
 
   .stop-material-trigger small {
@@ -637,9 +679,20 @@ noscript {
   }
 
   .hud p {
+    margin: 3px 0;
     font-size: 12px;
     letter-spacing: 0.1em;
   }
+
+  .fair-countdown {
+    gap: 5px;
+    margin-top: 4px;
+    padding-top: 4px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+  }
+
+  .fair-countdown strong { font-size: 23px; }
 
   .controls {
     right: 12px;
