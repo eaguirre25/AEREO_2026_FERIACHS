@@ -10,6 +10,10 @@ import {
   LANDMARKS
 } from './route.js';
 
+const AIRSHIP_BASE_SCALE = 8.4;
+const TRAIL_MAX_POINTS = 42;
+const TRAIL_SAMPLE_MS = 140;
+
 const initialPlaneState = () => ({
   lng: DEPARTURE_PATH[0].lng,
   lat: DEPARTURE_PATH[0].lat,
@@ -62,6 +66,8 @@ let planeState = initialPlaneState();
 let mapReady = false;
 let satelliteEnabled = true;
 let vectorFillLayers = [];
+let trailHistory = [initialPlaneState()];
+let lastTrailSample = 0;
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
@@ -152,6 +158,9 @@ function previewStop(index) {
         scale: 1,
         throttle: 0.82
       };
+  trailHistory = [{ lng: planeState.lng, lat: planeState.lat, alt: planeState.alt }];
+  lastTrailSample = 0;
+  syncTrailSource();
 
   setStop(index);
   setAltitude(planeState.alt);
@@ -190,10 +199,82 @@ function angleDelta(from, to) {
 
 const smooth = value => value * value * (3 - 2 * value);
 
+const catmullRom = (p0, p1, p2, p3, t) => {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  return 0.5 * (
+    2 * p1
+    + (-p0 + p2) * t
+    + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2
+    + (-p0 + 3 * p1 - 3 * p2 + p3) * t3
+  );
+};
+
+const routePoints = [DEPARTURE_PATH.at(-1), ...STOPS.slice(1)];
+
+function routeCurvePoint(index, progress) {
+  const p1 = routePoints[index];
+  const p2 = routePoints[index + 1];
+  const p0 = routePoints[index - 1] ?? {
+    lng: p1.lng * 2 - p2.lng,
+    lat: p1.lat * 2 - p2.lat
+  };
+  const p3 = routePoints[index + 2] ?? {
+    lng: p2.lng * 2 - p1.lng,
+    lat: p2.lat * 2 - p1.lat
+  };
+  return {
+    lng: catmullRom(p0.lng, p1.lng, p2.lng, p3.lng, progress),
+    lat: catmullRom(p0.lat, p1.lat, p2.lat, p3.lat, progress)
+  };
+}
+
+function sampledRouteCoordinates() {
+  const curved = [];
+  for (let routeSegment = 0; routeSegment < routePoints.length - 1; routeSegment += 1) {
+    for (let sample = 0; sample <= 24; sample += 1) {
+      if (routeSegment > 0 && sample === 0) continue;
+      const point = routeCurvePoint(routeSegment, sample / 24);
+      curved.push([point.lng, point.lat]);
+    }
+  }
+  return [
+    ...DEPARTURE_PATH.slice(0, -1).map(point => [point.lng, point.lat]),
+    ...curved
+  ];
+}
+
+function recordTrail(position, now, force = false) {
+  if (!force && now - lastTrailSample < TRAIL_SAMPLE_MS) return;
+  trailHistory.push({ lng: position.lng, lat: position.lat, alt: position.alt });
+  if (trailHistory.length > TRAIL_MAX_POINTS) trailHistory.shift();
+  lastTrailSample = now;
+  syncTrailSource();
+}
+
+function syncTrailSource() {
+  if (!mapReady) return;
+  const source = map.getSource('airship-trail');
+  if (!source) return;
+  const coordinates = trailHistory.map(point => [point.lng, point.lat]);
+  if (coordinates.length === 1) coordinates.push([...coordinates[0]]);
+  source.setData({
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'LineString', coordinates }
+  });
+}
+
 function interpolate(a, b, progress) {
   const eased = smooth(progress);
   const arc = Math.sin(Math.PI * progress);
-  const routeBearing = bearing(a, b);
+  const current = routeCurvePoint(segment, progress);
+  const nextProgress = Math.min(1, progress + 0.002);
+  let ahead = routeCurvePoint(segment, nextProgress);
+  if (nextProgress === 1 && segment < routePoints.length - 2) {
+    ahead = routeCurvePoint(segment + 1, 0.002);
+  }
+  const routeBearing = bearing(current, ahead);
   let altitude = a.alt + (b.alt - a.alt) * eased + arc * CRUISE_ALTITUDE;
 
   if (segment === 0) altitude = a.alt + (b.alt - a.alt) * eased + arc * 35;
@@ -208,8 +289,8 @@ function interpolate(a, b, progress) {
     * Math.max(-6, Math.min(6, angleDelta(incomingBearing, routeBearing) * 0.12));
 
   return {
-    lng: a.lng + (b.lng - a.lng) * eased,
-    lat: a.lat + (b.lat - a.lat) * eased,
+    lng: current.lng,
+    lat: current.lat,
     alt: altitude,
     bearing: routeBearing,
     bank,
@@ -305,6 +386,7 @@ function animate(now) {
     planeState = interpolate(origin, STOPS[segment + 1], progress);
   }
   setAltitude(planeState.alt);
+  recordTrail(planeState, now);
   cameraFollow(planeState);
   map.triggerRepaint();
 
@@ -360,6 +442,9 @@ function reset(animateMap = true) {
   segmentStart = 0;
   pausedAt = 0;
   planeState = initialPlaneState();
+  trailHistory = [{ lng: planeState.lng, lat: planeState.lat, alt: planeState.alt }];
+  lastTrailSample = 0;
+  syncTrailSource();
   setStop(0);
   setAltitude(planeState.alt);
   startBtn.disabled = false;
@@ -448,6 +533,9 @@ map.on('load', () => {
     }));
   const firstLabel = layers.find(layer => layer.type === 'symbol');
   const firstReference = layers.find(layer => layer.type === 'line') ?? firstLabel;
+  layers
+    .filter(layer => layer.type === 'fill-extrusion')
+    .forEach(layer => map.setLayoutProperty(layer.id, 'visibility', 'none'));
   map.addSource('satellite-imagery', {
     type: 'raster',
     tiles: [
@@ -479,13 +567,67 @@ map.on('load', () => {
       type: 'fill-extrusion',
       minzoom: 14,
       paint: {
-        'fill-extrusion-color': '#c9c5bd',
+        'fill-extrusion-color': [
+          'interpolate', ['linear'],
+          ['coalesce', ['get', 'render_height'], ['get', 'height'], 8],
+          0, '#0d6680',
+          24, '#159a9c',
+          80, '#69d2c8'
+        ],
         'fill-extrusion-height': ['coalesce', ['get', 'render_height'], ['get', 'height'], 8],
         'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
         'fill-extrusion-opacity': 0.78
       }
     }, firstLabel?.id);
   }
+
+  map.addSource('localidades-san-martin', {
+    type: 'geojson',
+    data: './assets/data/san-martin-localidades.geojson'
+  });
+  map.addLayer({
+    id: 'localidades-fill',
+    type: 'fill',
+    source: 'localidades-san-martin',
+    paint: {
+      'fill-color': [
+        'match', ['get', 'siglas'],
+        'SM', '#ff5a36',
+        'VL', '#25b5c5',
+        'SA', '#ffc857',
+        'VB', '#8ad36b',
+        '#9d7adf'
+      ],
+      'fill-opacity': 0.1
+    }
+  }, firstLabel?.id);
+  map.addLayer({
+    id: 'localidades-outline',
+    type: 'line',
+    source: 'localidades-san-martin',
+    paint: {
+      'line-color': '#ffd45a',
+      'line-width': ['interpolate', ['linear'], ['zoom'], 11, 1.2, 16, 3],
+      'line-opacity': 0.9
+    }
+  });
+  map.addLayer({
+    id: 'localidades-label',
+    type: 'symbol',
+    source: 'localidades-san-martin',
+    minzoom: 11.5,
+    layout: {
+      'text-field': ['get', 'Localidad'],
+      'text-size': ['interpolate', ['linear'], ['zoom'], 12, 11, 16, 15],
+      'text-transform': 'uppercase',
+      'text-letter-spacing': 0.12
+    },
+    paint: {
+      'text-color': '#fff7d6',
+      'text-halo-color': '#14242d',
+      'text-halo-width': 2
+    }
+  });
 
   map.addSource('route', {
     type: 'geojson',
@@ -494,10 +636,7 @@ map.on('load', () => {
       properties: {},
       geometry: {
         type: 'LineString',
-        coordinates: [
-          ...DEPARTURE_PATH.map(point => [point.lng, point.lat]),
-          ...STOPS.slice(1).map(stop => [stop.lng, stop.lat])
-        ]
+        coordinates: sampledRouteCoordinates()
       }
     }
   });
@@ -512,6 +651,50 @@ map.on('load', () => {
       'line-dasharray': [2, 3]
     }
   });
+
+  map.addSource('airship-trail', {
+    type: 'geojson',
+    lineMetrics: true,
+    data: {
+      type: 'Feature',
+      properties: {},
+      geometry: { type: 'LineString', coordinates: [] }
+    }
+  });
+  map.addLayer({
+    id: 'airship-trail-glow',
+    type: 'line',
+    source: 'airship-trail',
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: {
+      'line-width': 12,
+      'line-blur': 7,
+      'line-opacity': 0.7,
+      'line-gradient': [
+        'interpolate', ['linear'], ['line-progress'],
+        0, 'rgba(141,233,242,0)',
+        0.35, 'rgba(141,233,242,0.35)',
+        1, 'rgba(221,252,255,0.95)'
+      ]
+    }
+  });
+  map.addLayer({
+    id: 'airship-trail-core',
+    type: 'line',
+    source: 'airship-trail',
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: {
+      'line-width': 3,
+      'line-opacity': 0.92,
+      'line-gradient': [
+        'interpolate', ['linear'], ['line-progress'],
+        0, 'rgba(255,255,255,0)',
+        0.45, 'rgba(141,233,242,0.65)',
+        1, 'rgba(255,255,255,1)'
+      ]
+    }
+  });
+  syncTrailSource();
 
   map.addSource('postas', {
     type: 'geojson',
@@ -583,6 +766,7 @@ function makeLandmarkLayer(config) {
           model.traverse(object => {
             object.frustumCulled = false;
           });
+          if (config.palette === 'chacarita') styleChacaritaModel(model);
           scene.add(model);
           document.documentElement.dataset[config.id.replaceAll('-', '')] = 'loaded';
           layerMap.triggerRepaint();
@@ -609,8 +793,10 @@ function makeLandmarkLayer(config) {
       const local = new THREE.Matrix4()
         .makeTranslation(coordinate.x, coordinate.y, coordinate.z)
         .scale(new THREE.Vector3(units, -units, units));
+      const animatedRotation = (config.rotation ?? 0)
+        + (config.rotationSpeed ?? 0) * performance.now() / 1000;
       const rotation = new THREE.Matrix4()
-        .makeRotationZ((config.rotation ?? 0) * Math.PI / 180);
+        .makeRotationZ(animatedRotation * Math.PI / 180);
       camera.projectionMatrix = projection.multiply(local).multiply(rotation);
       renderer.resetState();
       renderer.render(scene, camera);
@@ -622,9 +808,12 @@ function makeAirshipLayer() {
   let renderer;
   let scene;
   let camera;
+  let trailScene;
+  let trailCamera;
+  let trailMeshes = [];
   let airship;
   let fans = [];
-  let airshipScale = 4.2;
+  const airshipScale = AIRSHIP_BASE_SCALE;
 
   return {
     id: 'airship-3d',
@@ -633,6 +822,21 @@ function makeAirshipLayer() {
     onAdd(layerMap, gl) {
       camera = new THREE.Camera();
       scene = new THREE.Scene();
+      trailCamera = new THREE.Camera();
+      trailScene = new THREE.Scene();
+      const trailGeometry = new THREE.SphereGeometry(1, 10, 7);
+      trailMeshes = Array.from({ length: TRAIL_MAX_POINTS }, (_, index) => {
+        const material = new THREE.MeshBasicMaterial({
+          color: index % 3 === 0 ? 0xffffff : 0x8de9f2,
+          transparent: true,
+          opacity: 0,
+          depthWrite: false
+        });
+        const particle = new THREE.Mesh(trailGeometry, material);
+        particle.visible = false;
+        trailScene.add(particle);
+        return particle;
+      });
       const fallback = createFallbackAirship();
       airship = fallback.airship;
       fans = fallback.fans;
@@ -653,7 +857,10 @@ function makeAirshipLayer() {
           loadedAirship.rotation.x = Math.PI / 2;
           loadedAirship.traverse(object => {
             object.frustumCulled = false;
-            if (object.name === 'Fan') loadedFans.push(object);
+            if (object.name === 'Fan') {
+              object.scale.setScalar(1.7);
+              loadedFans.push(object);
+            }
             if (object.isMesh) {
               const materials = Array.isArray(object.material) ? object.material : [object.material];
               materials.filter(Boolean).forEach(material => {
@@ -708,6 +915,25 @@ function makeAirshipLayer() {
       );
       const scale = coordinate.meterInMercatorCoordinateUnits();
       const projection = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
+      const visibleTrail = Math.min(trailHistory.length, trailMeshes.length);
+      trailMeshes.forEach((particle, index) => {
+        const point = trailHistory[trailHistory.length - 1 - index];
+        particle.visible = Boolean(point);
+        if (!point) return;
+        const particleCoordinate = maplibregl.MercatorCoordinate.fromLngLat(
+          [point.lng, point.lat],
+          point.alt
+        );
+        const age = index / Math.max(1, visibleTrail - 1);
+        particle.position.set(particleCoordinate.x, particleCoordinate.y, particleCoordinate.z);
+        particle.scale.setScalar(
+          particleCoordinate.meterInMercatorCoordinateUnits() * (7.2 - age * 5.2)
+        );
+        particle.material.opacity = 0.62 * (1 - age) ** 1.2;
+      });
+      trailCamera.projectionMatrix.copy(projection);
+      renderer.resetState();
+      renderer.render(trailScene, trailCamera);
       const local = new THREE.Matrix4()
         .makeTranslation(coordinate.x, coordinate.y, coordinate.z)
         .scale(new THREE.Vector3(scale, -scale, scale));
@@ -753,9 +979,44 @@ function createFallbackAirship() {
   const fan = new THREE.Group();
   const blade = new THREE.Mesh(new THREE.BoxGeometry(0.18, 3.2, 0.3), light);
   fan.add(blade);
-  fan.position.set(-2.2, 0, -4.2);
+  const crossBlade = blade.clone();
+  crossBlade.rotation.x = Math.PI / 2;
+  fan.add(crossBlade);
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.7, 16), dark);
+  hub.rotation.z = Math.PI / 2;
+  fan.add(hub);
+  fan.position.set(-10.4, 0, 0);
   airship.add(fan);
   return { airship, fans: [fan] };
+}
+
+function styleChacaritaModel(model) {
+  const palette = [0xf5f2e8, 0xd71920, 0x111111];
+  let standIndex = 0;
+  model.traverse(object => {
+    if (!object.isMesh) return;
+    const name = object.name.toLowerCase();
+    let color;
+    if (name === 'pitch') color = 0x151515;
+    else if (/touchline|goalline|halfway|luces/.test(name)) color = 0xffffff;
+    else if (/tribuna|esquina/.test(name)) color = palette[standIndex++ % palette.length];
+    else if (/torre|cubierta/.test(name)) color = 0x111111;
+    else if (name === 'base') color = 0xd71920;
+    else color = palette[standIndex++ % palette.length];
+
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    const styled = materials.filter(Boolean).map(material => {
+      const next = material.clone();
+      next.map = null;
+      next.color?.set(color);
+      next.vertexColors = false;
+      next.roughness = 0.62;
+      next.metalness = 0.05;
+      next.needsUpdate = true;
+      return next;
+    });
+    object.material = Array.isArray(object.material) ? styled : styled[0];
+  });
 }
 
 function disposeObject(object) {

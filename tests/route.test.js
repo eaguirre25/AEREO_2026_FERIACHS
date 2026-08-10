@@ -56,4 +56,16 @@ test('el estadio 3D coincide con la posta de Chacarita', () => {
   assert.equal(stadium.lat, stop.lat);
   assert.equal(stadium.lng, stop.lng);
   assert.match(stadium.model, /\.glb$/);
+  assert.equal(stadium.palette, 'chacarita');
+});
+
+test('el logo UNSAM gira sobre el Campus Miguelete', () => {
+  const logo = LANDMARKS.find(landmark => landmark.id === 'unsam-logo');
+  const campus = STOPS[0];
+  assert.ok(logo);
+  assert.equal(logo.lat, campus.lat);
+  assert.equal(logo.lng, campus.lng);
+  assert.ok(logo.altitude > 0);
+  assert.ok(logo.rotationSpeed > 0);
+  assert.match(logo.model, /\.glb$/);
 });
