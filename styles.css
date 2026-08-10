@@ -99,17 +99,25 @@ button:focus-visible {
   left: 24px;
   z-index: 6;
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
+  grid-template-columns: repeat(9, minmax(92px, 1fr));
   gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
+.route-nav::-webkit-scrollbar { display: none; }
+
 .route-nav button {
-  height: 30px;
+  height: 34px;
   border: 0;
   border-top: 2px solid rgba(255, 255, 255, 0.3);
   background: transparent;
   color: rgba(255, 255, 255, 0.68);
-  font: 600 11px Rajdhani, system-ui;
+  overflow: hidden;
+  font: 600 10px Rajdhani, system-ui;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
   cursor: pointer;
 }
 

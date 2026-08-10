@@ -72,9 +72,20 @@ AGPL-3.0, el componente fuente que anima `Fan` y una nota completa de adaptació
 en `assets/models/airship/`. Los logos originales se neutralizan al cargar el
 modelo, sin alterar el archivo de origen.
 
-El dirigible se muestra al doble de la escala inicial. La hélice `Fan` de cola se
+El dirigible usa escala 16,8: cuatro veces la escala del primer prototipo y el
+doble de la versión anterior. La hélice `Fan` de cola se
 amplía y anima según el avance, y una estela tridimensional semitransparente
 permanece detrás del vehículo durante el recorrido.
+
+Las postas muestran la localidad correspondiente al punto geográfico. Durante
+el vuelo, la localidad atravesada se resalta suavemente con una paleta roja,
+amarilla, azul, verde claro, naranja y violeta. El punto final de CEAMSE queda
+fuera de los polígonos suministrados y se identifica como límite municipal.
+UNSAM se identifica como límite Villa Maipú/Villa Lynch porque el campus y la
+maniobra inicial ocupan ambos lados de esa división.
+
+El logo UNSAM está ubicado en `-34.57850707883743, -58.52687013509144`, a 90 m
+de altura y con escala 0,54, tres veces mayor que en la versión anterior.
 
 ## Publicación
 

@@ -50,7 +50,7 @@ test('la posta de Billinghurst cae dentro de Villa Billinghurst', () => {
 
 test('el estadio 3D coincide con la posta de Chacarita', () => {
   const stadium = LANDMARKS.find(landmark => landmark.id === 'chacarita-stadium');
-  const stop = STOPS.find(item => item.name.includes('Chacarita'));
+  const stop = STOPS.find(item => item.place?.includes('Chacarita'));
   assert.ok(stadium);
   assert.ok(stop);
   assert.equal(stadium.lat, stop.lat);
@@ -61,11 +61,28 @@ test('el estadio 3D coincide con la posta de Chacarita', () => {
 
 test('el logo UNSAM gira sobre el Campus Miguelete', () => {
   const logo = LANDMARKS.find(landmark => landmark.id === 'unsam-logo');
-  const campus = STOPS[0];
   assert.ok(logo);
-  assert.equal(logo.lat, campus.lat);
-  assert.equal(logo.lng, campus.lng);
-  assert.ok(logo.altitude > 0);
+  assert.equal(logo.lat, -34.57850707883743);
+  assert.equal(logo.lng, -58.52687013509144);
+  assert.equal(logo.altitude, 90);
+  assert.equal(logo.scale, 0.54);
   assert.ok(logo.rotationSpeed > 0);
   assert.match(logo.model, /\.glb$/);
+});
+
+test('las postas muestran nombres de localidades verificadas', () => {
+  assert.deepEqual(
+    STOPS.slice(0, 8).map(stop => stop.name),
+    [
+      'Villa Maipú / Villa Lynch',
+      'Villa Lynch',
+      'San Martín',
+      'Villa Maipú',
+      'San Andrés',
+      'Villa Ballester',
+      'Billinghurst',
+      'Loma Hermosa'
+    ]
+  );
+  assert.equal(STOPS[8].name, 'CEAMSE · límite municipal');
 });

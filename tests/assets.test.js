@@ -70,3 +70,10 @@ test('la capa de localidades contiene ocho polígonos identificados', async () =
     assert.ok(feature.properties.siglas);
   });
 });
+
+test('la escena duplica el dirigible y resalta la localidad activa', async () => {
+  const source = await readFile(new URL('../app.js', import.meta.url), 'utf8');
+  assert.match(source, /AIRSHIP_BASE_SCALE = 16\.8/);
+  assert.match(source, /feature-state', 'active'/);
+  assert.match(source, /LOCALITY_COLORS/);
+});

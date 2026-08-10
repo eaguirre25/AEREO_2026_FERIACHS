@@ -1,13 +1,13 @@
 export const STOPS = [
-  {id:1,name:'UNSAM · Campus Miguelete',label:'ELEVACIÓN',lng:-58.5266950692,lat:-34.5798390695,alt:55,zoom:17.2},
-  {id:2,name:'Villa Lynch',label:'SOBREVUELO',lng:-58.523437722,lat:-34.590146441,alt:135,zoom:15.7},
-  {id:3,name:'San Martín centro',label:'SOBREVUELO',lng:-58.542014482,lat:-34.579698685,alt:120,zoom:16.0},
-  {id:4,name:'Estadio de Chacarita Juniors',label:'PASADA LENTA',lng:-58.52820,lat:-34.56734,alt:95,zoom:16.4},
+  {id:1,name:'Villa Maipú / Villa Lynch',label:'UNSAM · LÍMITE LOCAL',place:'UNSAM · Campus Miguelete',lng:-58.5266950692,lat:-34.5798390695,alt:55,zoom:17.2},
+  {id:2,name:'Villa Lynch',label:'SOBREVUELO',place:'Villa Lynch',lng:-58.523437722,lat:-34.590146441,alt:135,zoom:15.7},
+  {id:3,name:'San Martín',label:'CENTRO · SOBREVUELO',place:'San Martín centro',lng:-58.542014482,lat:-34.579698685,alt:120,zoom:16.0},
+  {id:4,name:'Villa Maipú',label:'CHACARITA · PASADA LENTA',place:'Estadio de Chacarita Juniors',lng:-58.52820,lat:-34.56734,alt:95,zoom:16.4},
   {id:5,name:'San Andrés',label:'SOBREVUELO',lng:-58.54448,lat:-34.56521,alt:125,zoom:15.9},
   {id:6,name:'Villa Ballester',label:'SOBREVUELO',lng:-58.5580651,lat:-34.5492309,alt:135,zoom:15.8},
-  {id:7,name:'Villa Billinghurst',label:'SOBREVUELO',lng:-58.5747487,lat:-34.5752034,alt:120,zoom:15.8},
+  {id:7,name:'Billinghurst',label:'SOBREVUELO',place:'Villa Billinghurst',lng:-58.5747487,lat:-34.5752034,alt:120,zoom:15.8},
   {id:8,name:'Loma Hermosa',label:'SOBREVUELO',lng:-58.5993659,lat:-34.5492367,alt:145,zoom:15.4},
-  {id:9,name:'CEAMSE · Complejo Ambiental Norte III',label:'DESCENSO FINAL',lng:-58.612613,lat:-34.530323,alt:70,zoom:15.2}
+  {id:9,name:'CEAMSE · límite municipal',label:'DESCENSO FINAL',place:'Complejo Ambiental Norte III',lng:-58.612613,lat:-34.530323,alt:70,zoom:15.2}
 ];
 
 export const SEGMENT_SECONDS = [18,22,22,20,22,24,28,26];
@@ -26,12 +26,12 @@ export const LANDMARKS = [
   {
     id: 'unsam-logo',
     model: './assets/models/landmarks/unsam/logo.glb',
-    lng: -58.5266950692,
-    lat: -34.5798390695,
-    altitude: 48,
+    lng: -58.52687013509144,
+    lat: -34.57850707883743,
+    altitude: 90,
     rotation: 0,
     rotationSpeed: 18,
-    scale: 0.18
+    scale: 0.54
   },
   {
     id: 'chacarita-stadium',
