@@ -173,6 +173,8 @@ test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async ()
   assert.match(source, /materialReturnState === 'stopped'/);
   assert.match(source, /resumeFlight\(true\)/);
   assert.match(source, /FLIGHT_SPEED_MULTIPLIER = 1\.1/);
+  assert.match(source, /INITIAL_LEG_SPEED_MULTIPLIER = 1\.6/);
+  assert.match(source, /initialLeg = flightStage === 'departure' \|\| segment === 0/);
   assert.match(source, /function stopAtPost\(index\)[\s\S]*throttle: 0\.28/);
   assert.match(source, /fans\.forEach\(fan => \{[\s\S]*fan\.rotation/);
   assert.match(source, /empty\.className = 'empty-material'/);
@@ -195,9 +197,23 @@ test('el HUD muestra el título temático y la cuenta regresiva sin revelar la f
   ]);
   assert.match(html, /id="stopTheme"/);
   assert.match(html, /id="countdownDays"/);
+  assert.match(html, /id="countdownHours"/);
+  assert.match(html, /id="countdownMinutes"/);
+  assert.match(html, /PARA OCTUBRE/);
+  assert.match(html, /assets\/ui\/el-camino-investigacion\.png/);
   assert.match(source, /2026-10-15T00:00:00-03:00/);
-  assert.match(source, /Math\.ceil\(\(FAIR_TARGET_TIMESTAMP - now\) \/ DAY_MS\)/);
+  assert.match(source, /Math\.floor\(remaining \/ DAY_MS\)/);
   assert.match(source, /stopTheme\.textContent = stop\.title\.toUpperCase\(\)/);
   assert.match(source, /materialTitle\.textContent = `POSTA \$\{stop\.id\} · \$\{stop\.title\}`/);
   assert.doesNotMatch(html, /15[\/-]10[\/-]2026|15 de octubre/i);
+  const titleBadge = await stat(new URL('../assets/ui/el-camino-investigacion.png', import.meta.url));
+  assert.ok(titleBadge.size > 100_000);
+  assert.ok(titleBadge.size < 500_000);
+});
+
+test('el panel de materiales reserva el alto real del título sin cortar las placas', async () => {
+  const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+  assert.match(styles, /\.material-panel\s*\{[\s\S]*display: flex;[\s\S]*flex-direction: column;/);
+  assert.match(styles, /\.material-body\s*\{[\s\S]*flex: 1 1 auto;[\s\S]*height: auto;/);
+  assert.match(styles, /\.slide-stage img\s*\{[\s\S]*width: 100%;[\s\S]*height: 100%;[\s\S]*object-fit: contain;/);
 });

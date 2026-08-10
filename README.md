@@ -31,6 +31,10 @@ Cada cartel conserva el título temático de su posta en el recorrido original y
 muestra debajo una cuenta regresiva en días hasta la feria, sin revelar la fecha
 exacta en pantalla.
 
+La cuenta regresiva reproduce el formato visual del proyecto original y muestra
+días, horas y minutos. El tramo de salida desde UNSAM hasta la Posta 2 usa una
+aceleración adicional para reducir la espera inicial.
+
 ## Ejecutar localmente
 
 Como `app.js` usa módulos ES, servir la carpeta con un servidor HTTP simple:

@@ -12,10 +12,13 @@ import {
 
 const AIRSHIP_BASE_SCALE = 16.8;
 const FLIGHT_SPEED_MULTIPLIER = 1.1;
+const INITIAL_LEG_SPEED_MULTIPLIER = 1.6;
 const TRAIL_MAX_POINTS = 42;
 const TRAIL_SAMPLE_MS = 140;
 const FAIR_TARGET_TIMESTAMP = Date.parse('2026-10-15T00:00:00-03:00');
 const DAY_MS = 24 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
 const POSTA_2_SLIDES = Array.from(
   { length: 7 },
   (_, index) => `./assets/materials/posta-2/slide-${String(index + 1).padStart(2, '0')}.webp`
@@ -75,6 +78,8 @@ const stopTheme = $('#stopTheme');
 const stopMeta = $('#stopMeta');
 const fairCountdown = $('#fairCountdown');
 const countdownDays = $('#countdownDays');
+const countdownHours = $('#countdownHours');
+const countdownMinutes = $('#countdownMinutes');
 const altitudeEl = $('#altitude');
 const statusEl = $('#status');
 const satelliteCredit = $('#satelliteCredit');
@@ -182,11 +187,16 @@ function setAltitude(altitude) {
 }
 
 function updateFairCountdown(now = Date.now()) {
-  const days = Math.max(0, Math.ceil((FAIR_TARGET_TIMESTAMP - now) / DAY_MS));
+  const remaining = Math.max(0, FAIR_TARGET_TIMESTAMP - now);
+  const days = Math.floor(remaining / DAY_MS);
+  const hours = Math.floor((remaining % DAY_MS) / HOUR_MS);
+  const minutes = Math.floor((remaining % HOUR_MS) / MINUTE_MS);
   countdownDays.textContent = String(days);
+  countdownHours.textContent = String(hours).padStart(2, '0');
+  countdownMinutes.textContent = String(minutes).padStart(2, '0');
   fairCountdown.setAttribute(
     'aria-label',
-    days === 1 ? 'Falta 1 día para la feria' : `Faltan ${days} días para la feria`
+    `Faltan ${days} días, ${hours} horas y ${minutes} minutos para la feria`
   );
 }
 
@@ -697,9 +707,12 @@ function completeFlight() {
 function animate(now) {
   if (flightState !== 'playing') return;
 
+  const initialLeg = flightStage === 'departure' || segment === 0;
+  const speedMultiplier = FLIGHT_SPEED_MULTIPLIER
+    * (initialLeg ? INITIAL_LEG_SPEED_MULTIPLIER : 1);
   const duration = ((flightStage === 'departure'
     ? DEPARTURE_SECONDS[departurePhase]
-    : SEGMENT_SECONDS[segment]) * 1000) / FLIGHT_SPEED_MULTIPLIER;
+    : SEGMENT_SECONDS[segment]) * 1000) / speedMultiplier;
   const progress = Math.min(1, (now - segmentStart) / duration);
   if (flightStage === 'departure') {
     planeState = interpolateDeparture(
@@ -848,7 +861,7 @@ document.addEventListener('keydown', event => {
 setStop(0);
 setAltitude(planeState.alt);
 updateFairCountdown();
-window.setInterval(updateFairCountdown, 60 * 1000);
+window.setInterval(updateFairCountdown, 1000);
 
 const loadTimeout = window.setTimeout(() => {
   if (!mapReady) setStatus('No se pudo cargar el mapa. Verificá tu conexión y reintentá.', true);

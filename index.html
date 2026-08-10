@@ -35,9 +35,15 @@
     </button>
     <p id="stopMeta">VILLA MAIPÚ / VILLA LYNCH · UNSAM · CAMPUS MIGUELETE</p>
     <div id="fairCountdown" class="fair-countdown" aria-live="polite">
-      <span>FALTAN</span>
-      <strong id="countdownDays">--</strong>
-      <span>DÍAS</span>
+      <span class="countdown-heading">FALTAN:</span>
+      <div class="countdown-values">
+        <span class="countdown-unit days"><strong id="countdownDays">--</strong><small>DÍAS</small></span>
+        <b aria-hidden="true">:</b>
+        <span class="countdown-unit hours"><strong id="countdownHours">--</strong><small>HORAS</small></span>
+        <b aria-hidden="true">:</b>
+        <span class="countdown-unit minutes"><strong id="countdownMinutes">--</strong><small>MINS</small></span>
+      </div>
+      <span class="countdown-month">PARA OCTUBRE</span>
     </div>
   </section>
   <div class="controls">
@@ -55,6 +61,7 @@
   </div>
   <nav id="routeNav" class="route-nav" aria-label="Postas del recorrido"></nav>
   <div class="top-tools">
+    <img class="project-title-badge" src="assets/ui/el-camino-investigacion.png" alt="¿Cómo creamos? El camino de la investigación">
     <button id="fullscreenBtn" class="fullscreen-control" type="button" aria-pressed="false">
       <span aria-hidden="true">⛶</span><span id="fullscreenLabel">PANTALLA COMPLETA</span>
     </button>
