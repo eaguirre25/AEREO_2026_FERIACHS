@@ -148,10 +148,11 @@ test('los controles usan un único botón de vuelo y recuperan la esquina derech
   assert.match(source, /fullscreenchange/);
 });
 
-test('la portada permite elegir dispositivo y recomienda usar el celular horizontal', async () => {
-  const [source, html] = await Promise.all([
+test('la portada permite elegir dispositivo y adapta los controles al celular', async () => {
+  const [source, html, styles] = await Promise.all([
     readFile(new URL('../app.js', import.meta.url), 'utf8'),
-    readFile(new URL('../index.html', import.meta.url), 'utf8')
+    readFile(new URL('../index.html', import.meta.url), 'utf8'),
+    readFile(new URL('../styles.css', import.meta.url), 'utf8')
   ]);
   assert.match(html, /id="experienceSetup"/);
   assert.match(html, />VERSIÓN MÓVIL<\/button>/);
@@ -163,6 +164,9 @@ test('la portada permite elegir dispositivo y recomienda usar el celular horizon
   assert.match(source, /requestedExperienceMode === 'desktop'/);
   assert.match(source, /requestedExperienceMode === 'mobile'/);
   assert.match(source, /showMobileOrientationPrompt\(\)/);
+  assert.match(styles, /@media \(max-width: 620px\)/);
+  assert.match(styles, /flex-direction: column-reverse/);
+  assert.match(styles, /\.fullscreen-control \{[\s\S]*?width: 70px;[\s\S]*?min-height: 34px;/);
 });
 
 test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async () => {
