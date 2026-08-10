@@ -132,6 +132,119 @@ body {
   text-shadow: 0 0 22px rgba(255, 212, 59, 0.55);
 }
 
+.journey-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  overflow: auto;
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  background:
+    linear-gradient(100deg, rgba(5, 12, 18, .91), rgba(6, 18, 25, .74)),
+    url('./assets/intro/feria-fondo.jpg') center / cover no-repeat;
+}
+
+.journey-intro-shell {
+  width: min(1500px, 100%);
+  min-height: 100%;
+  margin: auto;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: clamp(14px, 2vw, 26px);
+}
+
+.journey-intro-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #8ee8ff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+
+.journey-intro-header a {
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: rgba(4, 13, 19, .84);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-decoration: none;
+}
+
+.journey-intro-content {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, .95fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 52px);
+}
+
+.journey-intro-map {
+  min-width: 0;
+  margin: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .46), 0 0 0 1px rgba(255, 255, 255, .3);
+}
+
+.journey-intro-map img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.journey-intro-copy {
+  position: relative;
+  border: 1px solid rgba(0, 239, 255, .72);
+  border-radius: 18px;
+  padding: clamp(28px, 4vw, 56px);
+  background: linear-gradient(145deg, rgba(4, 24, 37, .94), rgba(7, 43, 60, .88));
+  box-shadow: 0 20px 54px rgba(0, 0, 0, .42), inset 0 0 30px rgba(0, 239, 255, .04);
+}
+
+.journey-intro-copy h1 {
+  margin: 0 0 18px;
+  color: #8ee8ff;
+  font-size: clamp(21px, 2.4vw, 36px);
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.journey-intro-copy p {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(23px, 2.4vw, 38px);
+  font-weight: 500;
+  line-height: 1.42;
+}
+
+.journey-intro-continue {
+  justify-self: end;
+  min-height: 52px;
+  border: 1px solid #00efff;
+  border-radius: 999px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #078bd5, #3448c5);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  cursor: pointer;
+  box-shadow: 0 0 22px rgba(0, 239, 255, .3);
+}
+
+.journey-intro-header a:hover,
+.journey-intro-header a:focus-visible,
+.journey-intro-continue:hover,
+.journey-intro-continue:focus-visible { filter: brightness(1.14); box-shadow: 0 0 28px rgba(0, 239, 255, .55); }
+
 button:focus-visible {
   outline: 3px solid #ff5a36;
   outline-offset: 3px;
@@ -745,6 +858,18 @@ noscript {
   .hud { max-width: calc(100vw - 325px); }
 }
 
+@media (max-height: 520px) and (orientation: landscape) {
+  .journey-intro { padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+  .journey-intro-shell { gap: 8px; }
+  .journey-intro-header { font-size: 10px; }
+  .journey-intro-header a { min-height: 36px; padding: 6px 10px; font-size: 10px; }
+  .journey-intro-content { grid-template-columns: minmax(0, 1.55fr) minmax(250px, .85fr); gap: 14px; }
+  .journey-intro-copy { border-radius: 12px; padding: 14px 16px; }
+  .journey-intro-copy h1 { margin-bottom: 7px; font-size: 16px; }
+  .journey-intro-copy p { font-size: clamp(16px, 2.5vw, 20px); line-height: 1.24; }
+  .journey-intro-continue { min-height: 40px; padding: 8px 16px; font-size: 11px; }
+}
+
 @media (max-width: 620px) {
   .experience-setup { padding: 16px; }
 
@@ -754,6 +879,17 @@ noscript {
   }
 
   .setup-actions { grid-template-columns: 1fr; }
+
+  .journey-intro { padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+  .journey-intro-shell { gap: 12px; }
+  .journey-intro-header { align-items: flex-start; font-size: 10px; letter-spacing: .12em; }
+  .journey-intro-header a { min-height: 40px; padding: 7px 11px; font-size: 10px; text-align: center; }
+  .journey-intro-content { grid-template-columns: 1fr; align-content: start; gap: 12px; }
+  .journey-intro-map { border-radius: 10px; }
+  .journey-intro-copy { border-radius: 13px; padding: 16px 18px; }
+  .journey-intro-copy h1 { margin-bottom: 8px; font-size: 18px; }
+  .journey-intro-copy p { font-size: clamp(18px, 5.6vw, 23px); line-height: 1.3; }
+  .journey-intro-continue { width: 100%; min-height: 48px; justify-self: stretch; padding: 10px 14px; font-size: 12px; }
 
   .hud {
     top: max(14px, env(safe-area-inset-top));

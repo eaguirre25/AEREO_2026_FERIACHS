@@ -106,6 +106,9 @@ const orientationPrompt = $('#orientationPrompt');
 const mobileModeBtn = $('#mobileModeBtn');
 const desktopModeBtn = $('#desktopModeBtn');
 const continueMobileBtn = $('#continueMobileBtn');
+const journeyIntro = $('#journeyIntro');
+const journeyIntroBack = $('#journeyIntroBack');
+const journeyIntroContinue = $('#journeyIntroContinue');
 const materialOverlay = $('#materialOverlay');
 const materialTitle = $('#materialTitle');
 const materialBody = $('#materialBody');
@@ -268,6 +271,18 @@ function finishExperienceSetup(mode) {
   document.documentElement.dataset.experienceMode = mode;
   experienceSetup.hidden = true;
   experienceSetup.setAttribute('aria-hidden', 'true');
+  const returnUrl = new URL('https://eaguirre25.github.io/COMOCREAMOS_MAPA_FERIA_2026/');
+  returnUrl.searchParams.set('choose', 'transport');
+  returnUrl.searchParams.set('device', mode);
+  journeyIntroBack.href = returnUrl.href;
+  journeyIntro.hidden = false;
+  journeyIntro.setAttribute('aria-hidden', 'false');
+  window.requestAnimationFrame(() => journeyIntroContinue.focus());
+}
+
+function enterAerialExperience() {
+  journeyIntro.hidden = true;
+  journeyIntro.setAttribute('aria-hidden', 'true');
   window.requestAnimationFrame(() => {
     map.resize();
     startBtn.focus();
@@ -285,6 +300,7 @@ mobileModeBtn.addEventListener('click', showMobileOrientationPrompt);
 
 desktopModeBtn.addEventListener('click', () => finishExperienceSetup('desktop'));
 continueMobileBtn.addEventListener('click', () => finishExperienceSetup('mobile'));
+journeyIntroContinue.addEventListener('click', enterAerialExperience);
 
 const requestedExperienceMode = new URLSearchParams(window.location.search).get('device');
 if (requestedExperienceMode === 'desktop') {
