@@ -953,7 +953,25 @@ function makeAirshipLayer() {
   let trailMeshes = [];
   let airship;
   let fans = [];
+  let loadedAirshipModel = null;
+  let originalFans = [];
+  let fairPropeller = null;
   const airshipScale = AIRSHIP_BASE_SCALE;
+
+  function attachFairPropeller() {
+    if (!loadedAirshipModel || !fairPropeller) return;
+    originalFans.forEach(fan => {
+      fan.visible = false;
+    });
+    if (fairPropeller.parent !== loadedAirshipModel) loadedAirshipModel.add(fairPropeller);
+    const rotatingBlades = fairPropeller.getObjectByName('aspas_rotativas');
+    if (rotatingBlades) {
+      rotatingBlades.userData.spinAxis = 'z';
+      fans = [rotatingBlades];
+    }
+    document.documentElement.dataset.propellerModel = 'feria';
+    map.triggerRepaint();
+  }
 
   return {
     id: 'airship-3d',
@@ -1017,7 +1035,10 @@ function makeAirshipLayer() {
           scene.remove(airship);
           disposeObject(airship);
           airship = loadedAirship;
+          loadedAirshipModel = loadedAirship;
+          originalFans = loadedFans;
           fans = loadedFans;
+          attachFairPropeller();
           scene.add(airship);
           document.documentElement.dataset.airshipModel = 'zoomland';
           if (flightState === 'ready') setStatus('Dirigible listo para elevarse desde UNSAM');
@@ -1030,6 +1051,49 @@ function makeAirshipLayer() {
           console.error('No se pudo cargar el dirigible; se conserva el modelo de respaldo.', error);
           if (flightState === 'ready') setStatus('Dirigible de respaldo listo para elevarse');
         }
+      );
+      new GLTFLoader().load(
+        './assets/models/airship/aspas_feria_3d.glb',
+        gltf => {
+          fairPropeller = gltf.scene;
+          fairPropeller.name = 'helice-feria-color';
+          fairPropeller.position.set(-9.45, 0, 0);
+          fairPropeller.rotation.y = -Math.PI / 2;
+          fairPropeller.scale.setScalar(1.65);
+          const propellerColors = {
+            aspa_azul: 0x168cff,
+            aspa_rojo: 0xff334f,
+            aspa_verde: 0x35d06f,
+            aspa_amarillo: 0xffdc3a,
+            centro_blanco_original: 0xffffff,
+            aro_eje_negro: 0x10151a,
+            tapa_central_blanca: 0xffffff
+          };
+          const frame = fairPropeller.getObjectByName('marco');
+          if (frame) frame.visible = false;
+          fairPropeller.traverse(object => {
+            object.frustumCulled = false;
+            if (!object.isMesh) return;
+            const materials = Array.isArray(object.material) ? object.material : [object.material];
+            const styledMaterials = materials.filter(Boolean).map(material => {
+              const styled = material.clone();
+              const color = propellerColors[object.name];
+              styled.vertexColors = color === undefined;
+              if (color !== undefined) {
+                styled.color?.set(color);
+                styled.emissive?.set(color);
+                styled.emissiveIntensity = 0.18;
+              }
+              styled.side = THREE.DoubleSide;
+              styled.needsUpdate = true;
+              return styled;
+            });
+            object.material = Array.isArray(object.material) ? styledMaterials : styledMaterials[0];
+          });
+          attachFairPropeller();
+        },
+        undefined,
+        error => console.error('No se pudo cargar la hélice de feria; se conserva la original.', error)
       );
       scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 2.3));
       const sun = new THREE.DirectionalLight(0xffffff, 2);
@@ -1047,7 +1111,9 @@ function makeAirshipLayer() {
       if (!airship) return;
       airship.scale.setScalar(airshipScale * (planeState.scale ?? 1));
       fans.forEach(fan => {
-        fan.rotation.x += 0.035 + (planeState.throttle ?? 0.6) * 0.11;
+        const rotationStep = 0.035 + (planeState.throttle ?? 0.6) * 0.11;
+        if (fan.userData.spinAxis === 'z') fan.rotation.z -= rotationStep;
+        else fan.rotation.x += rotationStep;
       });
       const coordinate = maplibregl.MercatorCoordinate.fromLngLat(
         [planeState.lng, planeState.lat],

@@ -92,6 +92,15 @@ diferente al título, selector y marcador cartográfico. Los controles
 `RETROCEDER` y `AVANZAR` permiten saltar entre postas; `ELEVAR/CONTINUAR`
 conserva su función de reproducir el recorrido continuo.
 
+La salida sobre la avenida 25 de Mayo está alineada con la dirección de la
+Posta 2, evitando la corrección brusca del prototipo anterior. La hélice de cola
+usa `aspas_feria_3d.glb`, con cuatro palas azul, roja, verde y amarilla; el centro
+y el marco conservan blanco y negro.
+
+El HUD superior, el altímetro y la banda inferior utilizan fondos translúcidos,
+desenfoque y brillo tipo neón. Los títulos y nombres de las postas se ampliaron
+para mantener la lectura sobre fotografía satelital clara u oscura.
+
 ## Publicación
 
 Al fusionar el prototipo a `main`, GitHub Actions despliega automáticamente el sitio mediante GitHub Pages.
