@@ -19,6 +19,7 @@ const FAIR_TARGET_TIMESTAMP = Date.parse('2026-10-15T00:00:00-03:00');
 const DAY_MS = 24 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
+const CAMERA_ORBIT_DEFAULT = Object.freeze({ azimuth: 6, pitchOffset: 0, zoomOffset: 0 });
 const POSTA_2_SLIDES = Array.from(
   { length: 7 },
   (_, index) => `./assets/materials/posta-2/slide-${String(index + 1).padStart(2, '0')}.webp`
@@ -62,7 +63,12 @@ const map = new maplibregl.Map({
   pitch: 58,
   bearing: bearing(DEPARTURE_PATH[1], DEPARTURE_PATH[2]),
   antialias: true,
-  attributionControl: false
+  attributionControl: false,
+  dragPan: false,
+  scrollZoom: false,
+  touchZoomRotate: false,
+  doubleClickZoom: false,
+  keyboard: false
 });
 
 map.addControl(new maplibregl.AttributionControl({ compact: true }), 'top-right');
@@ -114,7 +120,7 @@ let pausedAt = 0;
 let animationFrameId = null;
 let planeState = initialPlaneState();
 let mapReady = false;
-let satelliteEnabled = true;
+let satelliteEnabled = false;
 let vectorFillLayers = [];
 let trailHistory = [initialPlaneState()];
 let lastTrailSample = 0;
@@ -125,6 +131,7 @@ let celebrationTimer = null;
 let materialReturnState = 'ready';
 let materialSlideIndex = 0;
 let lastMaterialFocus = null;
+let cameraOrbit = { ...CAMERA_ORBIT_DEFAULT };
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
@@ -222,7 +229,7 @@ function setMapMode(useSatellite) {
       );
     }
   });
-  mapModeBtn.textContent = satelliteEnabled ? 'SATÉLITE' : 'MAPA';
+  mapModeBtn.textContent = satelliteEnabled ? 'MAPA' : 'SATÉLITE';
   mapModeBtn.setAttribute('aria-pressed', String(satelliteEnabled));
   mapModeBtn.setAttribute(
     'aria-label',
@@ -230,6 +237,7 @@ function setMapMode(useSatellite) {
   );
   mapModeBtn.classList.toggle('active', satelliteEnabled);
   satelliteCredit.hidden = !satelliteEnabled;
+  document.documentElement.dataset.mapMode = satelliteEnabled ? 'satellite' : 'map';
 }
 
 function syncFullscreenButton() {
@@ -664,7 +672,8 @@ function interpolateDeparture(a, b, progress, phase) {
 }
 
 function thirdPersonView(position) {
-  const radians = position.bearing * Math.PI / 180;
+  const viewBearing = position.bearing + cameraOrbit.azimuth;
+  const radians = viewBearing * Math.PI / 180;
   const distance = flightStage === 'departure'
     ? 0.00038
     : position.alt < 120 ? 0.00062 : 0.00078;
@@ -675,14 +684,88 @@ function thirdPersonView(position) {
 
   return {
     center,
-    zoom: flightStage === 'departure' ? 16.4 : position.alt < 120 ? 16.2 : 15.95,
-    pitch: flightStage === 'departure' ? 58 : 56,
-    bearing: position.bearing + 6
+    zoom: (flightStage === 'departure' ? 16.4 : position.alt < 120 ? 16.2 : 15.95)
+      + cameraOrbit.zoomOffset,
+    pitch: Math.max(22, Math.min(76,
+      (flightStage === 'departure' ? 58 : 56) + cameraOrbit.pitchOffset
+    )),
+    bearing: viewBearing
   };
 }
 
 function cameraFollow(position) {
   map.jumpTo(thirdPersonView(position));
+}
+
+function bindCameraOrbitControls() {
+  const canvas = map.getCanvas();
+  let activePointerId = null;
+  let lastX = 0;
+  let lastY = 0;
+
+  canvas.style.touchAction = 'none';
+  const syncOrbitState = () => {
+    document.documentElement.dataset.cameraAzimuth = cameraOrbit.azimuth.toFixed(2);
+    document.documentElement.dataset.cameraZoom = cameraOrbit.zoomOffset.toFixed(2);
+  };
+  syncOrbitState();
+  canvas.setAttribute(
+    'aria-description',
+    'Arrastrá para girar alrededor del dirigible y usá la rueda para acercar o alejar.'
+  );
+
+  canvas.addEventListener('pointerdown', event => {
+    if (activePointerId !== null || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    activePointerId = event.pointerId;
+    lastX = event.clientX;
+    lastY = event.clientY;
+    canvas.setPointerCapture(event.pointerId);
+    canvas.classList.add('orbiting');
+    event.preventDefault();
+  });
+
+  canvas.addEventListener('pointermove', event => {
+    if (event.pointerId !== activePointerId) return;
+    const deltaX = event.clientX - lastX;
+    const deltaY = event.clientY - lastY;
+    lastX = event.clientX;
+    lastY = event.clientY;
+    cameraOrbit.azimuth = ((cameraOrbit.azimuth + deltaX * 0.32 + 540) % 360) - 180;
+    cameraOrbit.pitchOffset = Math.max(-32, Math.min(20,
+      cameraOrbit.pitchOffset - deltaY * 0.24
+    ));
+    syncOrbitState();
+    cameraFollow(planeState);
+    map.triggerRepaint();
+    event.preventDefault();
+  });
+
+  const endOrbit = event => {
+    if (event.pointerId !== activePointerId) return;
+    activePointerId = null;
+    canvas.classList.remove('orbiting');
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+  };
+  canvas.addEventListener('pointerup', endOrbit);
+  canvas.addEventListener('pointercancel', endOrbit);
+
+  canvas.addEventListener('wheel', event => {
+    cameraOrbit.zoomOffset = Math.max(-1.1, Math.min(1.25,
+      cameraOrbit.zoomOffset - event.deltaY * 0.0018
+    ));
+    syncOrbitState();
+    cameraFollow(planeState);
+    map.triggerRepaint();
+    event.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener('dblclick', event => {
+    cameraOrbit = { ...CAMERA_ORBIT_DEFAULT };
+    syncOrbitState();
+    cameraFollow(planeState);
+    map.triggerRepaint();
+    event.preventDefault();
+  });
 }
 
 function stopAtPost(index) {
@@ -816,6 +899,7 @@ function reset(animateMap = true) {
   segment = 0;
   segmentStart = 0;
   pausedAt = 0;
+  cameraOrbit = { ...CAMERA_ORBIT_DEFAULT };
   planeState = initialPlaneState();
   trailHistory = [{ lng: planeState.lng, lat: planeState.lat, alt: planeState.alt }];
   lastTrailSample = 0;
@@ -858,6 +942,7 @@ document.addEventListener('keydown', event => {
   if (event.key === 'ArrowRight') stepMaterialSlide(1);
 });
 
+bindCameraOrbitControls();
 setStop(0);
 setAltitude(planeState.alt);
 updateFairCountdown();
@@ -917,7 +1002,7 @@ map.on('load', () => {
     id: 'satellite-imagery',
     type: 'raster',
     source: 'satellite-imagery',
-    layout: { visibility: 'visible' },
+    layout: { visibility: 'none' },
     paint: {
       'raster-opacity': 0.9,
       'raster-saturation': -0.12,
@@ -926,7 +1011,7 @@ map.on('load', () => {
     }
   }, firstReference?.id);
   mapModeBtn.disabled = false;
-  setMapMode(true);
+  setMapMode(false);
   if (map.getSource('openmaptiles')) {
     map.addLayer({
       id: '3d-buildings',
@@ -1233,7 +1318,76 @@ function makeAirshipLayer() {
   let loadedAirshipModel = null;
   let originalFans = [];
   let fairPropeller = null;
+  let advertisingTexture = null;
   const airshipScale = AIRSHIP_BASE_SCALE;
+
+  function attachAdvertising(model, orientation = 'gltf') {
+    if (!model || !advertisingTexture) return;
+    const previous = model.getObjectByName('publicidad-ciencia-y-ficcion');
+    if (previous) {
+      model.remove(previous);
+      disposeObject(previous);
+    }
+
+    const savedPosition = model.position.clone();
+    const savedQuaternion = model.quaternion.clone();
+    const savedScale = model.scale.clone();
+    model.position.set(0, 0, 0);
+    model.quaternion.identity();
+    model.scale.set(1, 1, 1);
+    model.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.copy(savedPosition);
+    model.quaternion.copy(savedQuaternion);
+    model.scale.copy(savedScale);
+
+    const verticalSize = orientation === 'gltf' ? size.y : size.z;
+    const aspect = advertisingTexture.image.width / advertisingTexture.image.height;
+    let width = size.x * 0.58;
+    let height = width / aspect;
+    const maxHeight = verticalSize * 0.52;
+    if (height > maxHeight) {
+      height = maxHeight;
+      width = height * aspect;
+    }
+
+    const group = new THREE.Group();
+    group.name = 'publicidad-ciencia-y-ficcion';
+    const geometry = new THREE.PlaneGeometry(width, height);
+    const material = new THREE.MeshBasicMaterial({
+      map: advertisingTexture,
+      side: THREE.DoubleSide,
+      toneMapped: false
+    });
+    const sideA = new THREE.Mesh(geometry, material);
+    const sideB = new THREE.Mesh(geometry, material.clone());
+    sideA.renderOrder = 4;
+    sideB.renderOrder = 4;
+
+    if (orientation === 'gltf') {
+      const offset = size.z * 0.5 + 0.02;
+      const verticalCenter = center.y + size.y * 0.22;
+      sideA.position.set(center.x, verticalCenter, center.z + offset);
+      sideB.position.set(center.x, verticalCenter, center.z - offset);
+      sideB.rotation.y = Math.PI;
+    } else {
+      const offset = size.y * 0.5 + 0.02;
+      const verticalCenter = center.z + size.z * 0.18;
+      sideA.position.set(center.x, center.y + offset, verticalCenter);
+      sideB.position.set(center.x, center.y - offset, verticalCenter);
+      sideA.rotation.x = -Math.PI / 2;
+      sideB.rotation.x = Math.PI / 2;
+    }
+
+    group.add(sideA, sideB);
+    model.add(group);
+    model.userData.advertisingSides = [sideA, sideB];
+    model.updateMatrixWorld(true);
+    document.documentElement.dataset.airshipAdvertising = 'ciencia-y-ficcion';
+    map.triggerRepaint();
+  }
 
   function attachFairPropeller() {
     if (!loadedAirshipModel || !fairPropeller) return;
@@ -1274,10 +1428,23 @@ function makeAirshipLayer() {
       });
       const fallback = createFallbackAirship();
       airship = fallback.airship;
+      airship.userData.advertisingOrientation = 'fallback';
       fans = fallback.fans;
       airship.scale.setScalar(airshipScale);
       scene.add(airship);
       document.documentElement.dataset.airshipModel = 'fallback';
+
+      new THREE.TextureLoader().load(
+        './assets/textures/airship/ciencia-y-ficcion.webp',
+        texture => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.anisotropy = Math.min(8, renderer?.capabilities.getMaxAnisotropy() ?? 1);
+          advertisingTexture = texture;
+          attachAdvertising(airship, airship.userData.advertisingOrientation);
+        },
+        undefined,
+        error => console.error('No se pudo cargar la publicidad lateral del dirigible.', error)
+      );
 
       const dracoLoader = new DRACOLoader();
       dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.178.0/examples/jsm/libs/draco/');
@@ -1288,6 +1455,7 @@ function makeAirshipLayer() {
         './assets/models/airship/airship.glb',
         gltf => {
           const loadedAirship = gltf.scene;
+          loadedAirship.userData.advertisingOrientation = 'gltf';
           const loadedFans = [];
           loadedAirship.rotation.x = Math.PI / 2;
           loadedAirship.traverse(object => {
@@ -1316,6 +1484,7 @@ function makeAirshipLayer() {
           originalFans = loadedFans;
           fans = loadedFans;
           attachFairPropeller();
+          attachAdvertising(loadedAirship, 'gltf');
           scene.add(airship);
           document.documentElement.dataset.airshipModel = 'zoomland';
           if (flightState === 'ready') setStatus('Dirigible listo para elevarse desde UNSAM');
@@ -1387,6 +1556,12 @@ function makeAirshipLayer() {
     render(gl, args) {
       if (!airship) return;
       airship.scale.setScalar(airshipScale * (planeState.scale ?? 1));
+      const cameraSide = Math.sin(cameraOrbit.azimuth * Math.PI / 180);
+      const advertisingSides = airship.userData.advertisingSides ?? [];
+      if (advertisingSides.length === 2) {
+        advertisingSides[0].visible = cameraSide < 0;
+        advertisingSides[1].visible = cameraSide >= 0;
+      }
       fans.forEach(fan => {
         const rotationStep = 0.035 + (planeState.throttle ?? 0.6) * 0.11;
         if (fan.userData.spinAxis === 'z') fan.rotation.z -= rotationStep;

@@ -92,7 +92,7 @@ test('las postas muestran nombres de localidades verificadas', () => {
   assert.deepEqual(
     STOPS.slice(0, 8).map(stop => stop.name),
     [
-      'Villa Maipú / Villa Lynch',
+      'UNSAM',
       'Villa Lynch',
       'San Martín',
       'Villa Maipú',
@@ -106,6 +106,7 @@ test('las postas muestran nombres de localidades verificadas', () => {
   assert.equal(STOPS[8].lat, -34.52213589682376);
   assert.equal(STOPS[8].lng, -58.58094506418298);
   assert.equal(STOPS[8].place, undefined);
+  assert.equal(STOPS[0].place, 'Campus Miguelete');
 });
 
 test('las postas conservan los títulos temáticos del recorrido original', () => {
