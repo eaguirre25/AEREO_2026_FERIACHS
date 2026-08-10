@@ -21,6 +21,21 @@ test('el dirigible distribuido es un GLB Draco válido y apto para la web', asyn
   assert.ok(gltf.nodes.some(node => node.name === 'Fan'));
 });
 
+test('la hélice de feria conserva cuatro aspas de colores', async () => {
+  const propellerUrl = new URL('aspas_feria_3d.glb', modelRoot);
+  const [file, metadata] = await Promise.all([
+    readFile(propellerUrl, { encoding: null, flag: 'r' }),
+    stat(propellerUrl),
+  ]);
+  assert.equal(file.subarray(0, 4).toString('ascii'), 'glTF');
+  assert.ok(metadata.size > 50_000 && metadata.size < 1024 * 1024);
+  const jsonLength = file.readUInt32LE(12);
+  const gltf = JSON.parse(file.subarray(20, 20 + jsonLength).toString('utf8'));
+  const nodeNames = gltf.nodes.map(node => node.name);
+  ['aspa_azul', 'aspa_rojo', 'aspa_verde', 'aspa_amarillo', 'aspas_rotativas']
+    .forEach(name => assert.ok(nodeNames.includes(name), `falta ${name}`));
+});
+
 test('el modelo conserva licencia, atribución y fuente modificable', async () => {
   const requiredFiles = [
     'LICENSE-AGPL-3.0.txt',
@@ -89,4 +104,11 @@ test('la interfaz permite avanzar y retroceder entre nueve postas coloreadas', a
   assert.match(source, /stepToStop\(-1\)/);
   assert.match(source, /stepToStop\(1\)/);
   assert.match(source, /stopName\.textContent = `POSTA \$\{stop\.id\}`/);
+});
+
+test('la escena carga y anima la hélice de feria', async () => {
+  const source = await readFile(new URL('../app.js', import.meta.url), 'utf8');
+  assert.match(source, /aspas_feria_3d\.glb/);
+  assert.match(source, /getObjectByName\('aspas_rotativas'\)/);
+  assert.match(source, /dataset\.propellerModel = 'feria'/);
 });

@@ -13,12 +13,12 @@ export const STOPS = [
 export const SEGMENT_SECONDS = [18,22,22,20,22,24,28,26];
 export const CRUISE_ALTITUDE = 45;
 
-// Eje de la avenida 25 de Mayo frente al Campus Miguelete (oeste → sudeste).
-// El primer tramo representa la elevación vertical y el segundo, el avance inicial.
+// Salida desde la avenida 25 de Mayo frente al Campus Miguelete.
+// El avance inicial queda alineado con la Posta 2 para evitar un giro abrupto.
 export const DEPARTURE_PATH = [
   {lng:-58.52685,lat:-34.57961,alt:14},
   {lng:-58.52685,lat:-34.57961,alt:55},
-  {lng:-58.52375,lat:-34.58103,alt:90}
+  {lng:-58.525895,lat:-34.582560,alt:90}
 ];
 export const DEPARTURE_SECONDS = [7,10];
 

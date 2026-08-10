@@ -23,9 +23,25 @@ test('la elevación y salida del dirigible parten de UNSAM sin saltos', () => {
   assert.ok(DEPARTURE_PATH[2].alt > DEPARTURE_PATH[1].alt);
 
   DEPARTURE_PATH.forEach(point => {
-    assert.ok(point.lat >= -34.582 && point.lat <= -34.577);
+    assert.ok(point.lat >= -34.583 && point.lat <= -34.577);
     assert.ok(point.lng >= -58.530 && point.lng <= -58.523);
   });
+});
+
+test('la salida queda alineada con la dirección de la Posta 2', () => {
+  const bearing = (a, b) => {
+    const deltaLng = (b.lng - a.lng) * Math.PI / 180;
+    const latA = a.lat * Math.PI / 180;
+    const latB = b.lat * Math.PI / 180;
+    const y = Math.sin(deltaLng) * Math.cos(latB);
+    const x = Math.cos(latA) * Math.sin(latB)
+      - Math.sin(latA) * Math.cos(latB) * Math.cos(deltaLng);
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  };
+  const departureBearing = bearing(DEPARTURE_PATH[1], DEPARTURE_PATH[2]);
+  const nextBearing = bearing(DEPARTURE_PATH[2], STOPS[1]);
+  const delta = Math.abs(((nextBearing - departureBearing + 540) % 360) - 180);
+  assert.ok(delta < 2, `el cambio de rumbo es de ${delta.toFixed(2)}°`);
 });
 
 test('las postas tienen identificadores y datos válidos', () => {
