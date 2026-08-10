@@ -7,7 +7,7 @@ export const STOPS = [
   {id:6,name:'Villa Ballester',label:'SOBREVUELO',lng:-58.5580651,lat:-34.5492309,alt:135,zoom:15.8},
   {id:7,name:'Billinghurst',label:'SOBREVUELO',place:'Villa Billinghurst',lng:-58.5747487,lat:-34.5752034,alt:120,zoom:15.8},
   {id:8,name:'Loma Hermosa',label:'SOBREVUELO',lng:-58.5993659,lat:-34.5492367,alt:145,zoom:15.4},
-  {id:9,name:'CEAMSE · límite municipal',label:'DESCENSO FINAL',place:'Complejo Ambiental Norte III',lng:-58.612613,lat:-34.530323,alt:70,zoom:15.2}
+  {id:9,name:'CEAMSE',place:'Complejo Ambiental Norte III',lng:-58.612613,lat:-34.530323,alt:70,zoom:15.2}
 ];
 
 export const SEGMENT_SECONDS = [18,22,22,20,22,24,28,26];
