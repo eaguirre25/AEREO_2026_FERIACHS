@@ -41,16 +41,8 @@ button:focus-visible {
   pointer-events: none;
 }
 
-.eyebrow {
-  font-size: 13px;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.92);
-  opacity: 1;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.32), 0 2px 6px #000;
-}
-
 .hud h1 {
-  margin: 4px 0 0;
+  margin: 0;
   font-size: clamp(30px, 4.4vw, 54px);
   font-weight: 700;
   line-height: 1.05;
@@ -222,6 +214,111 @@ button:focus-visible {
   background: rgba(62, 12, 8, 0.86);
 }
 
+.celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  overflow: hidden;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2), transparent 23%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.celebration.active { opacity: 1; }
+
+.celebration::before,
+.celebration::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12vmin;
+  aspect-ratio: 1;
+  border: 5px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 35px #fff, 0 0 90px var(--active-posta-color, #fff);
+  content: '';
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.2);
+}
+
+.celebration.active::before { animation: completion-ring 1.25s ease-out both; }
+.celebration.active::after { animation: completion-ring 1.5s 180ms ease-out both; }
+
+.completion-card {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  min-width: min(560px, calc(100vw - 40px));
+  border: 2px solid rgba(255, 255, 255, 0.78);
+  border-radius: 24px;
+  padding: 22px 28px;
+  background: linear-gradient(135deg, rgba(5, 16, 23, 0.92), rgba(28, 8, 46, 0.86));
+  box-shadow: 0 0 36px rgba(255, 255, 255, 0.3), 0 24px 80px rgba(0, 0, 0, 0.48);
+  opacity: 0;
+  text-align: center;
+  transform: translate(-50%, -50%) scale(0.65);
+  backdrop-filter: blur(15px);
+}
+
+.celebration.active .completion-card { animation: completion-card 5.8s 350ms ease both; }
+
+.completion-card strong,
+.completion-card span { display: block; }
+
+.completion-card strong {
+  background: linear-gradient(90deg, #ff4d4d, #ffd43b, #8bdc65, #3f8cff, #a56eff, #ff70b7);
+  background-clip: text;
+  color: transparent;
+  font-size: clamp(28px, 6vw, 66px);
+  line-height: 0.95;
+  letter-spacing: 0.025em;
+  -webkit-background-clip: text;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.45));
+}
+
+.completion-card span {
+  margin-top: 12px;
+  font-size: clamp(15px, 2.2vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.confetti i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(7px, 0.8vw, 13px);
+  height: clamp(14px, 1.8vw, 28px);
+  border-radius: 3px;
+  background: var(--piece-color);
+  box-shadow: 0 0 12px var(--piece-color);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.celebration.active .confetti i {
+  animation: confetti-burst var(--duration) var(--delay) cubic-bezier(0.12, 0.75, 0.28, 1) both;
+}
+
+@keyframes confetti-burst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.1) rotate(0); }
+  10% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--turn)); }
+}
+
+@keyframes completion-ring {
+  0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(9); }
+}
+
+@keyframes completion-card {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.65); }
+  12%, 78% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.08); }
+}
+
 .airship-credit {
   position: fixed;
   bottom: 104px;
@@ -270,13 +367,6 @@ noscript {
     max-width: calc(100vw - 112px);
     border-radius: 14px;
     padding: 10px 12px 9px;
-  }
-
-  .eyebrow {
-    overflow: hidden;
-    font-size: 10px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
   }
 
   .hud h1 {
@@ -337,4 +427,6 @@ noscript {
 
 @media (prefers-reduced-motion: reduce) {
   .status { backdrop-filter: none; }
+  .celebration.active .confetti i { animation-duration: 1.2s; }
+  .celebration.active .completion-card { animation-duration: 3.5s; }
 }

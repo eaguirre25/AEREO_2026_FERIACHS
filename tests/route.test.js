@@ -82,6 +82,8 @@ test('el logo UNSAM gira sobre el Campus Miguelete', () => {
   assert.equal(logo.lng, -58.52687013509144);
   assert.equal(logo.altitude, 90);
   assert.equal(logo.scale, 0.54);
+  assert.equal(logo.avoidAirship, true);
+  assert.ok(logo.clearance >= 200);
   assert.ok(logo.rotationSpeed > 0);
   assert.match(logo.model, /\.glb$/);
 });

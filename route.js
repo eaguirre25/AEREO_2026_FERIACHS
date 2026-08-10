@@ -31,7 +31,9 @@ export const LANDMARKS = [
     altitude: 90,
     rotation: 0,
     rotationSpeed: 18,
-    scale: 0.54
+    scale: 0.54,
+    avoidAirship: true,
+    clearance: 230
   },
   {
     id: 'chacarita-stadium',
