@@ -13,27 +13,61 @@ Encontrar una **avioneta civil ligera**, preferentemente de ala alta (estética 
 - materiales/texturas incluidos;
 - geometría legible desde cámara posterior a distancia media.
 
-## Fuentes abiertas localizadas
+## Candidatas verificadas
 
-### FlightGear / FGMEMBERS
+### 1. Cessna 172P — FlightGear / c172p-team
 
-Flightradar24 documentó que sus primeros modelos 3D de aeronaves procedían de FlightGear y del repositorio FGMEMBERS. Es una fuente relevante porque contiene numerosos modelos de aviación general, aunque antes de reutilizar un modelo concreto hay que verificar su licencia y convertir el formato si no está en glTF/GLB.
+- Tipo: avioneta civil ligera, monomotor, ala alta.
+- Repositorio público: `c172p-team/c172p` en GitHub.
+- Estado: proyecto activo; GitHub lo describe como una versión altamente detallada de la Cessna 172P para FlightGear.
+- Licencia: el ecosistema oficial FlightGear exige contribuciones GPLv2+ compatibles; la Cessna 172P figura entre las aeronaves GPL de FlightGear.
+- Formato original: assets de FlightGear, no GLB directo; requiere extraer la geometría relevante y convertirla a glTF/GLB.
+- Adecuación visual: **muy alta**. Es exactamente el tipo de avioneta civil que se busca para una cámara de persecución.
+- Riesgo técnico: el modelo completo incluye cockpit, sistemas y recursos que no necesitamos; conviene generar una versión web simplificada conservando fuselaje, alas, tren, hélice y texturas externas.
 
-### Khronos glTF Sample Assets
+**Prioridad: ALTA. Primera candidata para prototipo.**
 
-El repositorio oficial de Khronos recomienda varias fuentes externas de modelos glTF y menciona específicamente repositorios de aeronaves. Es útil como referencia técnica y para validar el pipeline GLB/glTF.
+### 2. Cessna 182S Skylane — FlightGear
+
+- Tipo: avioneta civil utilitaria, cuatro plazas, monomotor, ala alta.
+- Licencia: **GPLv2+**, explicitada por la documentación de FlightGear.
+- Estado: FlightGear la cataloga como un modelo 3D avanzado y muy detallado.
+- Formato original: FlightGear; requiere conversión/optimización a GLB.
+- Adecuación visual: **muy alta**. Algo más robusta que una C172 y probablemente más visible desde cámara posterior.
+- Riesgo técnico: el modelo es detallado; debe reducirse antes de cargarlo en navegador.
+
+**Prioridad: ALTA. Segunda candidata.**
+
+### 3. Otras aeronaves civiles del hangar oficial FlightGear
+
+El catálogo oficial incluye numerosas aeronaves civiles GPL adecuadas como reserva: Piper PA-28 Warrior II, Piper J3 Cub, Robin DR400, Cessna 182S, entre otras. Pueden evaluarse si la C172P o C182S resultan demasiado pesadas o complejas para convertir.
+
+## Fuentes descartadas como primera opción
 
 ### AircraftVerse
 
-Dataset abierto con miles de diseños de vehículos aéreos y modelos 3D/CAD, publicado bajo CC BY-SA. Es más útil como reserva de geometrías que como primera opción estética para una avioneta civil lista para web.
+Dataset abierto con 27.714 diseños de vehículos aéreos bajo CC BY-SA. Incluye STL y CAD, pero gran parte del corpus está orientado a diseños experimentales/UAV y no ofrece necesariamente una avioneta civil texturizada lista para navegador. Se mantiene como reserva de geometrías.
 
-## Decisión provisional
+### Khronos glTF Sample Assets
 
-No incorporar todavía un modelo al repositorio hasta verificar simultáneamente:
+Es excelente para validar el pipeline GLB/glTF y ofrece modelos con licencias individuales claramente documentadas, pero no apareció una avioneta civil adecuada dentro del catálogo oficial.
 
-1. que sea una avioneta civil adecuada visualmente;
-2. que el archivo pueda utilizarse directamente o convertirse a GLB;
-3. que la licencia permita redistribuirlo dentro de este repositorio;
-4. que su peso y complejidad sean razonables para navegador.
+## Decisión actual
 
-Mientras tanto, el proyecto debe mantener desacoplado el modelo (`assets/models/aircraft.glb`) para poder sustituirlo sin modificar la lógica de vuelo.
+Para el primer prototipo del recorrido se adopta esta prioridad:
+
+1. **Cessna 172P**;
+2. **Cessna 182S**;
+3. Piper/Robin civiles del hangar FlightGear como alternativas.
+
+La licencia GPL permite usar, modificar y redistribuir estos assets respetando sus obligaciones de licencia y atribución. Si se genera una versión derivada simplificada o convertida a GLB, debe conservarse la información de licencia y autores correspondiente junto al archivo.
+
+## Pipeline previsto
+
+1. obtener la geometría exterior de la aeronave elegida;
+2. eliminar cockpit y componentes invisibles desde tercera persona;
+3. conservar hélice como nodo separado si es posible;
+4. convertir a glTF/GLB;
+5. reducir geometría y texturas para web;
+6. guardar como `assets/models/aircraft.glb`;
+7. incluir `assets/models/LICENSE-aircraft.txt` con fuente, autores, licencia y modificaciones realizadas.
