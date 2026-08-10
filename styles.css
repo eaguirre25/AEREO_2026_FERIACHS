@@ -47,6 +47,9 @@ button:focus-visible {
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: 0.03em;
+  color: var(--posta-color, var(--active-posta-color, #fff));
+  text-shadow: 0 0 24px color-mix(in srgb, var(--posta-color, #fff) 45%, transparent), 0 2px 12px #000;
+  transition: color 500ms ease, text-shadow 500ms ease;
 }
 
 .hud p {
@@ -62,6 +65,8 @@ button:focus-visible {
   z-index: 6;
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .controls button {
@@ -80,6 +85,11 @@ button:focus-visible {
 .controls button.primary {
   background: #fff;
   color: #09131a;
+}
+
+.controls button.step-control {
+  border-color: color-mix(in srgb, var(--active-posta-color, #fff) 70%, #fff);
+  color: var(--active-posta-color, #fff);
 }
 
 .controls button.active {
@@ -108,10 +118,14 @@ button:focus-visible {
 .route-nav::-webkit-scrollbar { display: none; }
 
 .route-nav button {
-  height: 34px;
+  display: flex;
+  height: 42px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   border: 0;
-  border-top: 2px solid rgba(255, 255, 255, 0.3);
-  background: transparent;
+  border-top: 3px solid var(--posta-color);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--posta-color) 14%, transparent), transparent 72%);
   color: rgba(255, 255, 255, 0.68);
   overflow: hidden;
   font: 600 10px Rajdhani, system-ui;
@@ -119,11 +133,27 @@ button:focus-visible {
   text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
+  opacity: 0.68;
+  transition: opacity 250ms ease, background 250ms ease, color 250ms ease;
+}
+
+.route-nav button span {
+  color: var(--posta-color);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.route-nav button small {
+  max-width: 100%;
+  overflow: hidden;
+  font: 600 8px Rajdhani, system-ui;
+  text-overflow: ellipsis;
 }
 
 .route-nav button.active {
-  border-color: #ff5a36;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--posta-color) 30%, transparent), transparent 80%);
   color: #fff;
+  opacity: 1;
 }
 
 .altimeter {
@@ -239,6 +269,8 @@ noscript {
     left: 12px;
     justify-content: flex-end;
     gap: 6px;
+    max-height: 94px;
+    overflow-y: auto;
   }
 
   .controls button {
@@ -255,6 +287,7 @@ noscript {
   }
 
   .route-nav button { font-size: 9px; }
+  .route-nav button small { font-size: 7px; }
 
   .altimeter {
     top: max(18px, env(safe-area-inset-top));
@@ -264,11 +297,11 @@ noscript {
 
   .status { display: none; }
   .airship-credit {
-    bottom: calc(113px + env(safe-area-inset-bottom));
+    bottom: calc(165px + env(safe-area-inset-bottom));
     left: 16px;
   }
   .satellite-credit {
-    bottom: calc(129px + env(safe-area-inset-bottom));
+    bottom: calc(181px + env(safe-area-inset-bottom));
     left: 16px;
   }
   .maplibregl-ctrl-top-right { top: 56px; }

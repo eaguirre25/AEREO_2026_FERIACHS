@@ -21,6 +21,17 @@ const LOCALITY_COLORS = [
   '#f28c28',
   '#8e5bd9'
 ];
+const POSTA_COLORS = [
+  '#ff4d4d',
+  '#ffd43b',
+  '#3f8cff',
+  '#8bdc65',
+  '#ff922b',
+  '#a56eff',
+  '#20c9b0',
+  '#ff70b7',
+  '#f4eee2'
+];
 
 const initialPlaneState = () => ({
   lng: DEPARTURE_PATH[0].lng,
@@ -58,6 +69,8 @@ const altitudeEl = $('#altitude');
 const statusEl = $('#status');
 const satelliteCredit = $('#satelliteCredit');
 const mapModeBtn = $('#mapModeBtn');
+const prevStopBtn = $('#prevStopBtn');
+const nextStopBtn = $('#nextStopBtn');
 const startBtn = $('#startBtn');
 const pauseBtn = $('#pauseBtn');
 const restartBtn = $('#restartBtn');
@@ -78,11 +91,17 @@ let trailHistory = [initialPlaneState()];
 let lastTrailSample = 0;
 let localitiesData = null;
 let activeLocalityId = null;
+let currentStopIndex = 0;
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
+  const title = document.createElement('span');
+  const locality = document.createElement('small');
   button.type = 'button';
-  button.textContent = stop.name;
+  title.textContent = `POSTA ${stop.id}`;
+  locality.textContent = stop.name;
+  button.style.setProperty('--posta-color', POSTA_COLORS[index]);
+  button.append(title, locality);
   button.setAttribute('aria-label', `Posta ${index + 1}: ${stop.name}`);
   button.addEventListener('click', () => previewStop(index));
   nav.appendChild(button);
@@ -92,14 +111,39 @@ const navButtons = [...nav.querySelectorAll('button')];
 
 function setStop(index) {
   const stop = STOPS[index];
-  stopName.textContent = stop.name.toUpperCase();
-  stopMeta.textContent = `POSTA ${String(stop.id).padStart(2, '0')} · ${stop.label}`;
+  currentStopIndex = index;
+  const postaColor = POSTA_COLORS[index];
+  stopName.textContent = `POSTA ${stop.id}`;
+  stopMeta.textContent = `${stop.name.toUpperCase()} · ${stop.label}`;
+  stopName.style.setProperty('--posta-color', postaColor);
+  document.documentElement.style.setProperty('--active-posta-color', postaColor);
+  prevStopBtn.disabled = index === 0;
+  nextStopBtn.disabled = index === STOPS.length - 1;
+  prevStopBtn.setAttribute('aria-label', index === 0
+    ? 'Ya estás en la primera posta'
+    : `Retroceder a Posta ${index}: ${STOPS[index - 1].name}`);
+  nextStopBtn.setAttribute('aria-label', index === STOPS.length - 1
+    ? 'Ya estás en la última posta'
+    : `Avanzar a Posta ${index + 2}: ${STOPS[index + 1].name}`);
   navButtons.forEach((button, buttonIndex) => {
     const active = buttonIndex === index;
     button.classList.toggle('active', active);
-    if (active) button.setAttribute('aria-current', 'step');
+    if (active) {
+      button.setAttribute('aria-current', 'step');
+      window.requestAnimationFrame(() => {
+        nav.scrollTo({
+          left: button.offsetLeft - (nav.clientWidth - button.clientWidth) / 2,
+          behavior: 'smooth'
+        });
+      });
+    }
     else button.removeAttribute('aria-current');
   });
+}
+
+function stepToStop(direction) {
+  const target = Math.max(0, Math.min(STOPS.length - 1, currentStopIndex + direction));
+  if (target !== currentStopIndex) previewStop(target);
 }
 
 function setAltitude(altitude) {
@@ -527,6 +571,8 @@ function reset(animateMap = true) {
 
 startBtn.addEventListener('click', start);
 restartBtn.addEventListener('click', () => reset());
+prevStopBtn.addEventListener('click', () => stepToStop(-1));
+nextStopBtn.addEventListener('click', () => stepToStop(1));
 mapModeBtn.addEventListener('click', () => setMapMode(!satelliteEnabled));
 pauseBtn.addEventListener('click', () => {
   if (flightState === 'playing') {
@@ -794,9 +840,9 @@ map.on('load', () => {
     type: 'geojson',
     data: {
       type: 'FeatureCollection',
-      features: STOPS.map(stop => ({
+      features: STOPS.map((stop, index) => ({
         type: 'Feature',
-        properties: { name: stop.name, id: stop.id },
+        properties: { name: stop.name, id: stop.id, color: POSTA_COLORS[index] },
         geometry: { type: 'Point', coordinates: [stop.lng, stop.lat] }
       }))
     }
@@ -807,7 +853,7 @@ map.on('load', () => {
     source: 'postas',
     paint: {
       'circle-radius': 5,
-      'circle-color': '#ff5a36',
+      'circle-color': ['get', 'color'],
       'circle-stroke-color': '#111',
       'circle-stroke-width': 2
     }
@@ -823,7 +869,7 @@ map.on('load', () => {
       'text-anchor': 'top'
     },
     paint: {
-      'text-color': '#fff',
+      'text-color': ['get', 'color'],
       'text-halo-color': '#111',
       'text-halo-width': 1.5
     }
