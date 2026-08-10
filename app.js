@@ -74,6 +74,7 @@ const nextStopBtn = $('#nextStopBtn');
 const startBtn = $('#startBtn');
 const pauseBtn = $('#pauseBtn');
 const restartBtn = $('#restartBtn');
+const fullscreenBtn = $('#fullscreenBtn');
 const nav = $('#routeNav');
 const celebration = $('#celebration');
 const confetti = $('#confetti');
@@ -186,6 +187,30 @@ function setMapMode(useSatellite) {
   satelliteCredit.hidden = !satelliteEnabled;
 }
 
+function syncFullscreenButton() {
+  const active = Boolean(document.fullscreenElement);
+  fullscreenBtn.textContent = active
+    ? 'SALIR DE PANTALLA COMPLETA'
+    : 'PANTALLA COMPLETA';
+  fullscreenBtn.setAttribute('aria-pressed', String(active));
+  window.requestAnimationFrame(() => map.resize());
+}
+
+async function toggleFullscreen() {
+  if (!document.fullscreenEnabled) {
+    setStatus('La pantalla completa no está disponible en este navegador.', true);
+    return;
+  }
+
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch (error) {
+    console.error('No se pudo cambiar el modo de pantalla completa.', error);
+    setStatus('No se pudo activar la pantalla completa.', true);
+  }
+}
+
 function cancelAnimation() {
   if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
   animationFrameId = null;
@@ -262,7 +287,7 @@ function previewStop(index) {
     ? 'VOLVER A VOLAR'
     : index === 0 ? 'ELEVAR' : 'CONTINUAR';
   setStatus(isLastStop
-    ? 'Recorrido completo · CEAMSE'
+    ? 'Recorrido completo · José L. Suárez'
     : index === 0 ? 'Dirigible listo para elevarse desde UNSAM' : `Vista previa · ${stop.name}`);
   if (isLastStop) triggerCelebration();
   else cancelCelebration();
@@ -503,7 +528,7 @@ function completeFlight() {
   pauseBtn.setAttribute('aria-pressed', 'false');
   startBtn.disabled = false;
   startBtn.textContent = 'VOLVER A VOLAR';
-  setStatus('Recorrido completo · CEAMSE');
+  setStatus('Recorrido completo · José L. Suárez');
   triggerCelebration();
   map.easeTo({ zoom: 14.7, pitch: 62, duration: 2500, essential: false });
 }
@@ -613,6 +638,11 @@ restartBtn.addEventListener('click', () => reset());
 prevStopBtn.addEventListener('click', () => stepToStop(-1));
 nextStopBtn.addEventListener('click', () => stepToStop(1));
 mapModeBtn.addEventListener('click', () => setMapMode(!satelliteEnabled));
+fullscreenBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', syncFullscreenButton);
+document.addEventListener('fullscreenerror', () => {
+  setStatus('No se pudo activar la pantalla completa.', true);
+});
 pauseBtn.addEventListener('click', () => {
   if (flightState === 'playing') {
     flightState = 'paused';

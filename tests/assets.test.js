@@ -126,3 +126,16 @@ test('la pantalla omite rótulos de vuelo y celebra la Posta 9', async () => {
   assert.match(source, /if \(isLastStop\) triggerCelebration\(\)/);
   assert.match(source, /function completeFlight\(\)[\s\S]*triggerCelebration\(\)/);
 });
+
+test('los controles se distribuyen por función e incluyen pantalla completa', async () => {
+  const [source, html] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8')
+  ]);
+  assert.match(html, /class="control-group step-controls"[\s\S]*prevStopBtn[\s\S]*nextStopBtn/);
+  assert.match(html, /class="control-group utility-controls"[\s\S]*mapModeBtn[\s\S]*restartBtn/);
+  assert.match(html, /id="fullscreenBtn"[^>]*>PANTALLA COMPLETA<\/button>/);
+  assert.match(source, /requestFullscreen\(\)/);
+  assert.match(source, /document\.exitFullscreen\(\)/);
+  assert.match(source, /fullscreenchange/);
+});
