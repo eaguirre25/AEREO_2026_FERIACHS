@@ -7,7 +7,7 @@
   <title>Aéreo San Martín 2026</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="styles.css?v=responsive-1">
+  <link rel="stylesheet" href="styles.css?v=intro-1">
 </head>
 <body>
   <div id="experienceSetup" class="experience-setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
@@ -26,6 +26,24 @@
       <button id="continueMobileBtn" type="button">CONTINUAR</button>
     </div>
   </div>
+  <section id="journeyIntro" class="journey-intro" role="dialog" aria-modal="true" aria-labelledby="journeyIntroTitle" aria-hidden="true" hidden>
+    <div class="journey-intro-shell">
+      <header class="journey-intro-header">
+        <span>ANTES DE INICIAR EL VUELO</span>
+        <a id="journeyIntroBack" href="https://eaguirre25.github.io/COMOCREAMOS_MAPA_FERIA_2026/?choose=transport">← ELEGIR RECORRIDO</a>
+      </header>
+      <div class="journey-intro-content">
+        <figure class="journey-intro-map">
+          <img src="assets/intro/el-camino-de-la-investigacion.png" alt="Mapa ilustrado de las postas de El camino de la investigación">
+        </figure>
+        <article class="journey-intro-copy">
+          <h1 id="journeyIntroTitle">El camino de la investigación</h1>
+          <p>Te proponemos un recorrido interactivo por este mapa con postas para acompañarlas/os a la próxima edición de la Feria.</p>
+        </article>
+      </div>
+      <button id="journeyIntroContinue" class="journey-intro-continue" type="button">CONTINUAR AL RECORRIDO AÉREO →</button>
+    </div>
+  </section>
   <main id="map" aria-label="Recorrido aéreo 3D por el Partido de General San Martín"></main>
   <section class="hud">
     <button id="stopMaterialBtn" class="stop-material-trigger" type="button" aria-label="Abrir materiales de la Posta 1">
