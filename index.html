@@ -10,20 +10,37 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div id="experienceSetup" class="experience-setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <div id="modeChoice" class="setup-card">
+      <span class="setup-kicker">ANTES DE COMENZAR</span>
+      <h1 id="setupTitle">¿Cómo vas a realizar el recorrido?</h1>
+      <div class="setup-actions">
+        <button id="mobileModeBtn" type="button">VERSIÓN MÓVIL</button>
+        <button id="desktopModeBtn" type="button">ESCRITORIO PC</button>
+      </div>
+    </div>
+    <div id="orientationPrompt" class="setup-card orientation-card" hidden>
+      <div class="orientation-icon" aria-hidden="true">↻ ▭</div>
+      <h1>Giralo para ver mejor</h1>
+      <p>Te sugerimos colocar el celular en posición horizontal para mejorar la experiencia.</p>
+      <button id="continueMobileBtn" type="button">CONTINUAR</button>
+    </div>
+  </div>
   <main id="map" aria-label="Recorrido aéreo 3D por el Partido de General San Martín"></main>
   <section class="hud">
-    <h1 id="stopName">POSTA 1</h1>
+    <button id="stopMaterialBtn" class="stop-material-trigger" type="button" aria-label="Abrir materiales de la Posta 1">
+      <span id="stopName" class="stop-name">POSTA 1</span>
+      <small>(HACÉ CLICK AQUÍ)</small>
+    </button>
     <p id="stopMeta">VILLA MAIPÚ / VILLA LYNCH · UNSAM · CAMPUS MIGUELETE</p>
   </section>
   <div class="controls">
+    <div class="control-group flight-controls">
+      <button id="startBtn" type="button" class="primary" aria-pressed="false">INICIAR</button>
+    </div>
     <div class="control-group step-controls">
       <button id="prevStopBtn" type="button" class="step-control" disabled>← RETROCEDER</button>
       <button id="nextStopBtn" type="button" class="step-control">AVANZAR →</button>
-    </div>
-    <div class="control-group flight-controls">
-      <button id="startBtn" type="button" class="primary">ELEVAR</button>
-      <button id="pauseBtn" type="button" aria-pressed="false" disabled>PAUSA</button>
-      <button id="fullscreenBtn" type="button" aria-pressed="false">PANTALLA COMPLETA</button>
     </div>
     <div class="control-group utility-controls">
       <button id="mapModeBtn" type="button" aria-pressed="true" aria-label="Usar mapa vectorial" disabled>SATÉLITE</button>
@@ -31,14 +48,25 @@
     </div>
   </div>
   <nav id="routeNav" class="route-nav" aria-label="Postas del recorrido"></nav>
-  <div class="altimeter"><span>ALT</span><strong id="altitude">0 m</strong></div>
+  <div class="top-tools">
+    <button id="fullscreenBtn" class="fullscreen-control" type="button" aria-pressed="false">
+      <span aria-hidden="true">⛶</span><span id="fullscreenLabel">PANTALLA COMPLETA</span>
+    </button>
+    <div class="altimeter"><span>ALT</span><strong id="altitude">0 m</strong></div>
+  </div>
   <div id="status" class="status" role="status" aria-live="polite">Preparando aeronave…</div>
   <div id="celebration" class="celebration" aria-hidden="true">
     <div id="confetti" class="confetti" aria-hidden="true"></div>
     <div class="completion-card" role="status">
       <strong>¡RECORRIDO COMPLETADO!</strong>
-      <span>POSTA 9 · JOSÉ L. SUÁREZ</span>
     </div>
+  </div>
+  <div id="materialOverlay" class="material-overlay" role="dialog" aria-modal="true" aria-labelledby="materialTitle" aria-hidden="true">
+    <section class="material-panel">
+      <button id="closeMaterialBtn" class="material-close" type="button">✕ CERRAR Y CONTINUAR</button>
+      <h2 id="materialTitle">POSTA 1</h2>
+      <div id="materialBody" class="material-body"></div>
+    </section>
   </div>
   <a id="satelliteCredit" class="satellite-credit" href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" target="_blank" rel="noopener">IMÁGENES © ESRI Y PROVEEDORES</a>
   <a class="airship-credit" href="https://github.com/C2DH/zoomland" target="_blank" rel="license noopener">AIRSHIP · C2DH/ZOOMLAND · AGPL-3.0</a>

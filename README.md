@@ -18,7 +18,14 @@ El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No r
 8. **Loma Hermosa** — sobrevuelo
 9. **José L. Suárez** — cierre del recorrido
 
-El dirigible mantiene un movimiento continuo mediante una curva suave que atraviesa todas las postas sin detenerse. La altura y el zoom varían para que el territorio pueda reconocerse. José L. Suárez funciona como cierre con descenso progresivo.
+El dirigible mantiene un movimiento suave entre las postas y se detiene al llegar a cada una. La altura y el zoom varían para que el territorio pueda reconocerse. José L. Suárez funciona como cierre con descenso progresivo.
+
+Durante la experiencia, el dirigible se detiene en cada posta y conserva la
+hélice girando. La persona abre el cartel de la posta para consultar sus
+materiales y decide cuándo continuar mediante el botón de cierre. La Posta 2
+incluye las siete placas “Mirador: afinar lo que vemos” copiadas del repositorio
+`COMOCREAMOS_MAPA_FERIA_2026`; las demás postas quedan preparadas con paneles
+oscuros translúcidos hasta recibir contenido.
 
 ## Ejecutar localmente
 
@@ -89,9 +96,14 @@ de altura y con escala 0,54, tres veces mayor que en la versión anterior.
 
 La interfaz titula cada punto como `POSTA 1` a `POSTA 9` y asigna un color
 diferente al título, selector y marcador cartográfico. Los controles
-`RETROCEDER` y `AVANZAR` permiten saltar entre postas; `ELEVAR/CONTINUAR`
-conserva su función de reproducir el recorrido continuo. La interfaz también
+`RETROCEDER` y `AVANZAR` permiten saltar entre postas; `INICIAR/PAUSA/CONTINUAR`
+controla la reproducción del recorrido. La interfaz también
 permite alternar la experiencia en pantalla completa.
+
+Antes de comenzar se elige entre versión móvil y escritorio. La opción móvil
+muestra una recomendación para girar el teléfono. El botón único de vuelo
+cambia entre `INICIAR`, `PAUSA` y `CONTINUAR`, y la velocidad general es un 10 %
+mayor que en la versión anterior.
 
 La salida sobre la avenida 25 de Mayo está alineada con la dirección de la
 Posta 2, evitando la corrección brusca del prototipo anterior. La hélice de cola

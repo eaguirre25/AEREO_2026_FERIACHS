@@ -122,20 +122,68 @@ test('la pantalla omite rótulos de vuelo y celebra la Posta 9', async () => {
   assert.doesNotMatch(source, /stopMeta\.textContent\s*=.*stop\.label/);
   assert.match(html, /id="celebration"/);
   assert.match(html, /¡RECORRIDO COMPLETADO!/);
+  assert.doesNotMatch(html, /POSTA 9 · JOSÉ L\. SUÁREZ/);
   assert.match(source, /function triggerCelebration\(\)/);
   assert.match(source, /if \(isLastStop\) triggerCelebration\(\)/);
   assert.match(source, /function completeFlight\(\)[\s\S]*triggerCelebration\(\)/);
 });
 
-test('los controles se distribuyen por función e incluyen pantalla completa', async () => {
+test('los controles usan un único botón de vuelo y recuperan la esquina derecha', async () => {
+  const [source, html, styles] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8'),
+    readFile(new URL('../styles.css', import.meta.url), 'utf8')
+  ]);
+  assert.match(html, /id="startBtn"[^>]*>INICIAR<\/button>/);
+  assert.doesNotMatch(html, /id="pauseBtn"/);
+  assert.match(html, /flight-controls[\s\S]*step-controls[\s\S]*utility-controls/);
+  assert.match(html, /class="control-group utility-controls"[\s\S]*mapModeBtn[\s\S]*restartBtn/);
+  assert.match(html, /class="top-tools"[\s\S]*fullscreenBtn[\s\S]*class="altimeter"/);
+  assert.match(styles, /\.controls\s*\{[\s\S]*right: 24px;[\s\S]*justify-content: flex-end/);
+  assert.match(styles, /button\.step-control\s*\{[\s\S]*background: #fff;[\s\S]*color: #173442/);
+  assert.match(source, /setFlightButton\('PAUSA'\)/);
+  assert.match(source, /setFlightButton\('CONTINUAR'/);
+  assert.match(source, /requestFullscreen\(\)/);
+  assert.match(source, /document\.exitFullscreen\(\)/);
+  assert.match(source, /fullscreenchange/);
+});
+
+test('la portada permite elegir dispositivo y recomienda usar el celular horizontal', async () => {
   const [source, html] = await Promise.all([
     readFile(new URL('../app.js', import.meta.url), 'utf8'),
     readFile(new URL('../index.html', import.meta.url), 'utf8')
   ]);
-  assert.match(html, /class="control-group step-controls"[\s\S]*prevStopBtn[\s\S]*nextStopBtn/);
-  assert.match(html, /class="control-group utility-controls"[\s\S]*mapModeBtn[\s\S]*restartBtn/);
-  assert.match(html, /id="fullscreenBtn"[^>]*>PANTALLA COMPLETA<\/button>/);
-  assert.match(source, /requestFullscreen\(\)/);
-  assert.match(source, /document\.exitFullscreen\(\)/);
-  assert.match(source, /fullscreenchange/);
+  assert.match(html, /id="experienceSetup"/);
+  assert.match(html, />VERSIÓN MÓVIL<\/button>/);
+  assert.match(html, />ESCRITORIO PC<\/button>/);
+  assert.match(html, /posición horizontal para mejorar la experiencia/);
+  assert.match(source, /finishExperienceSetup\('desktop'\)/);
+  assert.match(source, /finishExperienceSetup\('mobile'\)/);
+});
+
+test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async () => {
+  const [source, html] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8')
+  ]);
+  assert.match(html, /\(HACÉ CLICK AQUÍ\)/);
+  assert.match(html, /id="materialOverlay"/);
+  assert.match(html, /id="closeMaterialBtn"/);
+  assert.match(source, /function stopAtPost\(index\)/);
+  assert.match(source, /materialReturnState === 'stopped'/);
+  assert.match(source, /resumeFlight\(true\)/);
+  assert.match(source, /FLIGHT_SPEED_MULTIPLIER = 1\.1/);
+  assert.match(source, /function stopAtPost\(index\)[\s\S]*throttle: 0\.28/);
+  assert.match(source, /fans\.forEach\(fan => \{[\s\S]*fan\.rotation/);
+  assert.match(source, /empty\.className = 'empty-material'/);
+
+  for (let index = 1; index <= 7; index += 1) {
+    const file = await stat(new URL(
+      `../assets/materials/posta-2/slide-${String(index).padStart(2, '0')}.webp`,
+      import.meta.url
+    ));
+    assert.ok(file.size > 50_000, `la placa ${index} no puede estar vacía`);
+  }
+  const sourceNote = await stat(new URL('../assets/materials/posta-2/SOURCE.md', import.meta.url));
+  assert.ok(sourceNote.size > 0);
 });

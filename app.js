@@ -11,8 +11,13 @@ import {
 } from './route.js';
 
 const AIRSHIP_BASE_SCALE = 16.8;
+const FLIGHT_SPEED_MULTIPLIER = 1.1;
 const TRAIL_MAX_POINTS = 42;
 const TRAIL_SAMPLE_MS = 140;
+const POSTA_2_SLIDES = Array.from(
+  { length: 7 },
+  (_, index) => `./assets/materials/posta-2/slide-${String(index + 1).padStart(2, '0')}.webp`
+);
 const LOCALITY_COLORS = [
   '#e53935',
   '#f4d03f',
@@ -72,12 +77,23 @@ const mapModeBtn = $('#mapModeBtn');
 const prevStopBtn = $('#prevStopBtn');
 const nextStopBtn = $('#nextStopBtn');
 const startBtn = $('#startBtn');
-const pauseBtn = $('#pauseBtn');
 const restartBtn = $('#restartBtn');
 const fullscreenBtn = $('#fullscreenBtn');
+const fullscreenLabel = $('#fullscreenLabel');
+const stopMaterialBtn = $('#stopMaterialBtn');
 const nav = $('#routeNav');
 const celebration = $('#celebration');
 const confetti = $('#confetti');
+const experienceSetup = $('#experienceSetup');
+const modeChoice = $('#modeChoice');
+const orientationPrompt = $('#orientationPrompt');
+const mobileModeBtn = $('#mobileModeBtn');
+const desktopModeBtn = $('#desktopModeBtn');
+const continueMobileBtn = $('#continueMobileBtn');
+const materialOverlay = $('#materialOverlay');
+const materialTitle = $('#materialTitle');
+const materialBody = $('#materialBody');
+const closeMaterialBtn = $('#closeMaterialBtn');
 
 let flightState = 'ready';
 let flightStage = 'departure';
@@ -96,6 +112,9 @@ let localitiesData = null;
 let activeLocalityId = null;
 let currentStopIndex = 0;
 let celebrationTimer = null;
+let materialReturnState = 'ready';
+let materialSlideIndex = 0;
+let lastMaterialFocus = null;
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
@@ -120,6 +139,7 @@ function setStop(index) {
   stopName.textContent = `POSTA ${stop.id}`;
   const place = stop.place && stop.place !== stop.name ? ` · ${stop.place}` : '';
   stopMeta.textContent = `${stop.name}${place}`.toUpperCase();
+  stopMaterialBtn.setAttribute('aria-label', `Abrir materiales de la Posta ${stop.id}: ${stop.name}`);
   stopName.style.setProperty('--posta-color', postaColor);
   document.documentElement.style.setProperty('--active-posta-color', postaColor);
   prevStopBtn.disabled = index === 0;
@@ -189,7 +209,7 @@ function setMapMode(useSatellite) {
 
 function syncFullscreenButton() {
   const active = Boolean(document.fullscreenElement);
-  fullscreenBtn.textContent = active
+  fullscreenLabel.textContent = active
     ? 'SALIR DE PANTALLA COMPLETA'
     : 'PANTALLA COMPLETA';
   fullscreenBtn.setAttribute('aria-pressed', String(active));
@@ -210,6 +230,26 @@ async function toggleFullscreen() {
     setStatus('No se pudo activar la pantalla completa.', true);
   }
 }
+
+function finishExperienceSetup(mode) {
+  document.documentElement.dataset.experienceMode = mode;
+  experienceSetup.hidden = true;
+  experienceSetup.setAttribute('aria-hidden', 'true');
+  window.requestAnimationFrame(() => {
+    map.resize();
+    startBtn.focus();
+  });
+}
+
+mobileModeBtn.addEventListener('click', () => {
+  document.documentElement.dataset.experienceMode = 'mobile';
+  modeChoice.hidden = true;
+  orientationPrompt.hidden = false;
+  continueMobileBtn.focus();
+});
+
+desktopModeBtn.addEventListener('click', () => finishExperienceSetup('desktop'));
+continueMobileBtn.addEventListener('click', () => finishExperienceSetup('mobile'));
 
 function cancelAnimation() {
   if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
@@ -247,12 +287,116 @@ function triggerCelebration() {
   celebrationTimer = window.setTimeout(cancelCelebration, 6500);
 }
 
+function setFlightButton(label, pressed = false) {
+  startBtn.textContent = label;
+  startBtn.disabled = false;
+  startBtn.setAttribute('aria-pressed', String(pressed));
+}
+
+function renderPosta2Slide() {
+  materialBody.replaceChildren();
+  const viewer = document.createElement('div');
+  const stage = document.createElement('div');
+  const previous = document.createElement('button');
+  const image = document.createElement('img');
+  const next = document.createElement('button');
+  const counter = document.createElement('div');
+
+  viewer.className = 'slide-viewer';
+  stage.className = 'slide-stage';
+  previous.className = 'slide-nav prev';
+  next.className = 'slide-nav next';
+  counter.className = 'slide-counter';
+  previous.type = 'button';
+  next.type = 'button';
+  previous.textContent = '‹';
+  next.textContent = '›';
+  previous.setAttribute('aria-label', 'Placa anterior');
+  next.setAttribute('aria-label', 'Placa siguiente');
+  previous.disabled = materialSlideIndex === 0;
+  next.disabled = materialSlideIndex === POSTA_2_SLIDES.length - 1;
+  image.src = POSTA_2_SLIDES[materialSlideIndex];
+  image.alt = `Material de la Posta 2, placa ${materialSlideIndex + 1} de ${POSTA_2_SLIDES.length}`;
+  counter.textContent = `${materialSlideIndex + 1} / ${POSTA_2_SLIDES.length}`;
+
+  previous.addEventListener('click', () => {
+    materialSlideIndex = Math.max(0, materialSlideIndex - 1);
+    renderPosta2Slide();
+  });
+  next.addEventListener('click', () => {
+    materialSlideIndex = Math.min(POSTA_2_SLIDES.length - 1, materialSlideIndex + 1);
+    renderPosta2Slide();
+  });
+  stage.append(previous, image, next);
+  viewer.append(stage, counter);
+  materialBody.appendChild(viewer);
+}
+
+function renderMaterial(index) {
+  const stop = STOPS[index];
+  materialTitle.textContent = `POSTA ${stop.id} · ${stop.name}`;
+  if (index === 1) {
+    materialSlideIndex = 0;
+    renderPosta2Slide();
+    return;
+  }
+  const empty = document.createElement('div');
+  empty.className = 'empty-material';
+  empty.setAttribute('aria-label', `Espacio reservado para los materiales de la Posta ${stop.id}`);
+  materialBody.replaceChildren(empty);
+}
+
+function openMaterial(index = currentStopIndex) {
+  if (materialOverlay.classList.contains('open')) return;
+  lastMaterialFocus = document.activeElement;
+  materialReturnState = flightState;
+  if (flightState === 'playing') {
+    pausedAt = performance.now();
+    cancelAnimation();
+  }
+  flightState = 'material';
+  renderMaterial(index);
+  const continuesRoute = materialReturnState === 'playing' || materialReturnState === 'stopped';
+  closeMaterialBtn.textContent = continuesRoute ? '✕ CERRAR Y CONTINUAR' : '✕ CERRAR';
+  materialOverlay.classList.add('open');
+  materialOverlay.setAttribute('aria-hidden', 'false');
+  closeMaterialBtn.focus();
+  map.triggerRepaint();
+}
+
+function closeMaterial() {
+  if (!materialOverlay.classList.contains('open')) return;
+  materialOverlay.classList.remove('open');
+  materialOverlay.setAttribute('aria-hidden', 'true');
+
+  if (materialReturnState === 'stopped') {
+    resumeFlight(true);
+  } else if (materialReturnState === 'playing') {
+    resumeFlight(false);
+  } else {
+    flightState = materialReturnState;
+    if (flightState === 'paused') setFlightButton('CONTINUAR', true);
+    else if (flightState === 'ready') setFlightButton('INICIAR');
+    else if (flightState === 'completed') setFlightButton('VOLVER A VOLAR');
+  }
+  lastMaterialFocus?.focus?.();
+}
+
+function stepMaterialSlide(direction) {
+  if (currentStopIndex !== 1 || !materialOverlay.classList.contains('open')) return;
+  materialSlideIndex = Math.max(
+    0,
+    Math.min(POSTA_2_SLIDES.length - 1, materialSlideIndex + direction)
+  );
+  renderPosta2Slide();
+}
+
 function previewStop(index) {
   cancelAnimation();
   const stop = STOPS[index];
   const isLastStop = index === STOPS.length - 1;
 
-  flightState = isLastStop ? 'completed' : 'previewing';
+  flightState = isLastStop ? 'completed' : index === 0 ? 'ready' : 'stopped';
   flightStage = index === 0 ? 'departure' : 'route';
   departurePhase = 0;
   segment = Math.min(index, STOPS.length - 2);
@@ -279,13 +423,9 @@ function previewStop(index) {
 
   setStop(index);
   setAltitude(planeState.alt);
-  pauseBtn.disabled = true;
-  pauseBtn.textContent = 'PAUSA';
-  pauseBtn.setAttribute('aria-pressed', 'false');
-  startBtn.disabled = false;
-  startBtn.textContent = isLastStop
+  setFlightButton(isLastStop
     ? 'VOLVER A VOLAR'
-    : index === 0 ? 'ELEVAR' : 'CONTINUAR';
+    : index === 0 ? 'INICIAR' : 'CONTINUAR');
   setStatus(isLastStop
     ? 'Recorrido completo · José L. Suárez'
     : index === 0 ? 'Dirigible listo para elevarse desde UNSAM' : `Vista previa · ${stop.name}`);
@@ -520,14 +660,20 @@ function cameraFollow(position) {
   map.jumpTo(thirdPersonView(position));
 }
 
+function stopAtPost(index) {
+  cancelAnimation();
+  flightState = 'stopped';
+  planeState = { ...planeState, throttle: 0.28, bank: 0, pitch: 0 };
+  setFlightButton('CONTINUAR');
+  setStatus(`Posta ${index + 1} · hacé click en el cartel para ver los materiales`);
+  map.triggerRepaint();
+}
+
 function completeFlight() {
   cancelAnimation();
   flightState = 'completed';
-  pauseBtn.disabled = true;
-  pauseBtn.textContent = 'PAUSA';
-  pauseBtn.setAttribute('aria-pressed', 'false');
-  startBtn.disabled = false;
-  startBtn.textContent = 'VOLVER A VOLAR';
+  planeState = { ...planeState, throttle: 0.28, bank: 0, pitch: 0 };
+  setFlightButton('VOLVER A VOLAR');
   setStatus('Recorrido completo · José L. Suárez');
   triggerCelebration();
   map.easeTo({ zoom: 14.7, pitch: 62, duration: 2500, essential: false });
@@ -536,9 +682,9 @@ function completeFlight() {
 function animate(now) {
   if (flightState !== 'playing') return;
 
-  const duration = (flightStage === 'departure'
+  const duration = ((flightStage === 'departure'
     ? DEPARTURE_SECONDS[departurePhase]
-    : SEGMENT_SECONDS[segment]) * 1000;
+    : SEGMENT_SECONDS[segment]) * 1000) / FLIGHT_SPEED_MULTIPLIER;
   const progress = Math.min(1, (now - segmentStart) / duration);
   if (flightStage === 'departure') {
     planeState = interpolateDeparture(
@@ -578,31 +724,64 @@ function animate(now) {
       completeFlight();
       return;
     }
-    segmentStart = now;
-    setStatus(`Rumbo a ${STOPS[segment + 1].name}`);
+    stopAtPost(segment);
+    return;
   }
 
   animationFrameId = requestAnimationFrame(animate);
 }
 
-function start() {
-  if (flightState === 'completed' || segment >= STOPS.length - 1) reset(false);
+function resumeFlight(fromStop = false) {
+  const now = performance.now();
+  if (fromStop) segmentStart = now;
+  else if (pausedAt) segmentStart += now - pausedAt;
+  else segmentStart = now;
+  pausedAt = 0;
   flightState = 'playing';
-  segmentStart = performance.now();
-  startBtn.disabled = true;
-  pauseBtn.disabled = false;
-  pauseBtn.textContent = 'PAUSA';
-  pauseBtn.setAttribute('aria-pressed', 'false');
+  planeState = { ...planeState, throttle: Math.max(0.72, planeState.throttle ?? 0) };
+  setFlightButton('PAUSA');
   setStatus(flightStage === 'departure'
-    ? 'Elevación suave desde UNSAM'
+    ? departurePhase === 0
+      ? 'Elevación suave desde UNSAM'
+      : 'Avance inicial sobre Av. 25 de Mayo'
     : `Rumbo a ${STOPS[segment + 1].name}`);
   cancelAnimation();
   animationFrameId = requestAnimationFrame(animate);
 }
 
+function pauseFlight() {
+  flightState = 'paused';
+  pausedAt = performance.now();
+  cancelAnimation();
+  planeState = { ...planeState, throttle: 0.28 };
+  setFlightButton('CONTINUAR', true);
+  setStatus('Vuelo en pausa');
+  map.triggerRepaint();
+}
+
+function start() {
+  if (flightState === 'playing') {
+    pauseFlight();
+    return;
+  }
+  if (flightState === 'paused') {
+    resumeFlight(false);
+    return;
+  }
+  if (flightState === 'stopped') {
+    openMaterial(currentStopIndex);
+    return;
+  }
+  if (flightState === 'material') return;
+  if (flightState === 'completed' || segment >= STOPS.length - 1) reset(false);
+  resumeFlight(true);
+}
+
 function reset(animateMap = true) {
   cancelAnimation();
   cancelCelebration();
+  materialOverlay.classList.remove('open');
+  materialOverlay.setAttribute('aria-hidden', 'true');
   flightState = 'ready';
   flightStage = 'departure';
   departurePhase = 0;
@@ -616,11 +795,7 @@ function reset(animateMap = true) {
   updateActiveLocality(planeState);
   setStop(0);
   setAltitude(planeState.alt);
-  startBtn.disabled = false;
-  startBtn.textContent = 'ELEVAR';
-  pauseBtn.disabled = true;
-  pauseBtn.textContent = 'PAUSA';
-  pauseBtn.setAttribute('aria-pressed', 'false');
+  setFlightButton('INICIAR');
   setStatus('Dirigible listo para elevarse desde UNSAM');
 
   const transition = {
@@ -643,29 +818,16 @@ document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('fullscreenerror', () => {
   setStatus('No se pudo activar la pantalla completa.', true);
 });
-pauseBtn.addEventListener('click', () => {
-  if (flightState === 'playing') {
-    flightState = 'paused';
-    pausedAt = performance.now();
-    cancelAnimation();
-    pauseBtn.textContent = 'SEGUIR';
-    pauseBtn.setAttribute('aria-pressed', 'true');
-    setStatus('Vuelo en pausa');
-    return;
-  }
-
-  if (flightState === 'paused') {
-    segmentStart += performance.now() - pausedAt;
-    flightState = 'playing';
-    pauseBtn.textContent = 'PAUSA';
-    pauseBtn.setAttribute('aria-pressed', 'false');
-    setStatus(flightStage === 'departure'
-      ? departurePhase === 0
-        ? 'Elevación suave desde UNSAM'
-        : 'Avance inicial sobre Av. 25 de Mayo'
-      : `Rumbo a ${STOPS[segment + 1].name}`);
-    animationFrameId = requestAnimationFrame(animate);
-  }
+stopMaterialBtn.addEventListener('click', () => openMaterial(currentStopIndex));
+closeMaterialBtn.addEventListener('click', closeMaterial);
+materialOverlay.addEventListener('click', event => {
+  if (event.target === materialOverlay) closeMaterial();
+});
+document.addEventListener('keydown', event => {
+  if (!materialOverlay.classList.contains('open')) return;
+  if (event.key === 'Escape') closeMaterial();
+  if (event.key === 'ArrowLeft') stepMaterialSlide(-1);
+  if (event.key === 'ArrowRight') stepMaterialSlide(1);
 });
 
 setStop(0);
