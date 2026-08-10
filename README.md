@@ -37,6 +37,7 @@ Abrir `http://localhost:8000`.
 - `route.js` — coordenadas, alturas y tiempos de las postas
 - `app.js` — mapa 3D, avión, cámara y animación
 - `docs/ASSETS_3D.md` — evaluación de aeronaves abiertas
+- `.github/workflows/pages.yml` — despliegue automático en GitHub Pages desde `main`
 
 ## Próximo reemplazo de aeronave
 
@@ -44,4 +45,4 @@ Prioridad actual: **Cessna 172P de FlightGear**, seguida por Cessna 182S. El mod
 
 ## Publicación
 
-La estructura es compatible con GitHub Pages. Para probar esta rama puede desplegarse desde `agent/prototipo-vuelo-san-martin` o fusionarse a `main` y configurar Pages desde la raíz.
+Al fusionar el prototipo a `main`, GitHub Actions despliega automáticamente el sitio mediante GitHub Pages.
