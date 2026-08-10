@@ -2,45 +2,47 @@
 
 Experiencia web 3D guiada por el Partido de General San Martín, Buenos Aires.
 
-## Concepto
+## Prototipo funcional
 
-Un recorrido aéreo por **9 postas**. La experiencia comienza en la **UNSAM (Campus Miguelete)** como **Posta 1 / Despegue**. Una avioneta visible en tercera persona recorre el territorio y conduce al visitante de posta en posta.
+El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No requiere API key para la base cartográfica. La aeronave actual es un modelo 3D liviano generado con geometrías Three.js para validar vuelo, cámara, escala y rendimiento. Está preparado para sustituirse por la Cessna abierta definitiva cuando terminemos la conversión a GLB.
 
-## Principios del prototipo
+## Las 9 postas
 
-- mapa y tecnologías abiertas siempre que sea viable;
-- avioneta 3D visible durante el recorrido;
-- cámara en tercera persona siguiendo a la aeronave;
-- recorrido guiado, no simulador de vuelo completo;
-- 9 postas geográficas;
-- prioridad a funcionamiento fluido en navegador;
-- arquitectura preparada para GitHub Pages.
+1. **UNSAM — Campus Miguelete** — despegue
+2. **Villa Lynch** — sobrevuelo
+3. **San Martín centro** — sobrevuelo
+4. **Estadio de Chacarita Juniors** — pasada baja
+5. **San Andrés** — sobrevuelo
+6. **Villa Ballester** — sobrevuelo
+7. **Billinghurst** — sobrevuelo
+8. **Loma Hermosa** — sobrevuelo
+9. **CEAMSE — Complejo Ambiental Norte III** — descenso final
 
-## Stack en evaluación
+El avión no aterriza en las postas intermedias. La altura y el zoom varían para que el territorio pueda reconocerse. CEAMSE funciona como cierre con descenso progresivo.
 
-- **CesiumJS** para territorio, terreno y navegación geográfica 3D;
-- **Three.js / glTF (GLB)** para modelos 3D cuando sea necesario;
-- datos cartográficos abiertos (OpenStreetMap y fuentes compatibles);
-- JavaScript/HTML/CSS.
+## Ejecutar localmente
 
-## Postas
+Como `app.js` usa módulos ES, servir la carpeta con un servidor HTTP simple:
 
-1. **UNSAM — Campus Miguelete** — Despegue
-2. Por definir
-3. Por definir
-4. Por definir
-5. Por definir
-6. Por definir
-7. Por definir
-8. Por definir
-9. Por definir
+```bash
+python -m http.server 8000
+```
 
-## Modelo de aeronave
+Abrir `http://localhost:8000`.
 
-Se priorizará una avioneta civil ligera en formato GLB/glTF con licencia abierta verificable (CC0, CC-BY o equivalente). No se incorporarán assets cuya licencia de reutilización no esté clara.
+## Archivos
 
-Ver `docs/ASSETS_3D.md` para candidatos y criterios de selección.
+- `index.html` — interfaz y HUD
+- `styles.css` — estética del recorrido
+- `route.js` — coordenadas, alturas y tiempos de las postas
+- `app.js` — mapa 3D, avión, cámara y animación
+- `docs/ASSETS_3D.md` — evaluación de aeronaves abiertas
+- `.github/workflows/pages.yml` — despliegue automático en GitHub Pages desde `main`
 
-## Estado
+## Próximo reemplazo de aeronave
 
-Prototipo inicial en construcción.
+Prioridad actual: **Cessna 172P de FlightGear**, seguida por Cessna 182S. El modelo exterior se convertirá/optimizará a glTF/GLB conservando atribución y licencia correspondiente. Hasta entonces el prototipo no depende de ningún asset binario externo.
+
+## Publicación
+
+Al fusionar el prototipo a `main`, GitHub Actions despliega automáticamente el sitio mediante GitHub Pages.
