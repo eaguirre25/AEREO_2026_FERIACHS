@@ -169,27 +169,60 @@ button:focus-visible {
 }
 
 .fair-countdown {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
+  display: grid;
+  width: 252px;
+  place-items: center;
+  gap: 3px;
   margin-top: 9px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
-  color: #d9f6ff;
-  font-size: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 13px;
+  padding: 7px 12px 8px;
+  background: rgba(255, 255, 255, 0.84);
+  color: #101010;
+  font-family: Georgia, 'Times New Roman', serif;
   font-weight: 800;
-  letter-spacing: 0.16em;
-  text-shadow: 0 2px 8px #000;
+  letter-spacing: 0.12em;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
 }
 
-.fair-countdown strong {
-  color: var(--active-posta-color, #fff);
-  font-size: clamp(25px, 3vw, 36px);
-  line-height: 0.8;
-  letter-spacing: 0;
-  text-shadow: 0 0 12px color-mix(in srgb, var(--active-posta-color, #fff) 65%, transparent), 0 2px 8px #000;
-  transition: color 500ms ease, text-shadow 500ms ease;
+.countdown-heading,
+.countdown-month {
+  font-size: 11px;
+  line-height: 1;
 }
+
+.countdown-values {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.countdown-values > b {
+  margin-top: 2px;
+  font: 800 29px/1 Arial, sans-serif;
+}
+
+.countdown-unit {
+  display: grid;
+  min-width: 43px;
+  place-items: center;
+}
+
+.countdown-unit strong {
+  font: 800 30px/0.92 Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+.countdown-unit small {
+  margin-top: 3px;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.countdown-unit.days strong { color: #ff3963; }
+.countdown-unit.hours strong { color: #14aee4; }
+.countdown-unit.minutes strong { color: #12cf72; }
 
 .controls {
   position: fixed;
@@ -318,6 +351,15 @@ button:focus-visible {
   display: flex;
   align-items: stretch;
   gap: 8px;
+}
+
+.project-title-badge {
+  display: block;
+  width: 195px;
+  height: auto;
+  border-radius: 11px;
+  object-fit: contain;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.13);
 }
 
 .fullscreen-control {
@@ -466,6 +508,8 @@ button:focus-visible {
 
 .material-panel {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: min(1120px, 96vw);
   height: min(760px, 90vh);
   border: 1px solid rgba(255, 255, 255, 0.52);
@@ -477,6 +521,7 @@ button:focus-visible {
 }
 
 .material-panel h2 {
+  flex: 0 0 auto;
   margin: 0 220px 14px 0;
   color: var(--active-posta-color, #fff);
   font-size: clamp(24px, 4vw, 42px);
@@ -501,7 +546,8 @@ button:focus-visible {
 
 .material-body {
   display: grid;
-  height: calc(100% - 62px);
+  flex: 1 1 auto;
+  height: auto;
   min-height: 0;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -537,8 +583,12 @@ button:focus-visible {
 
 .slide-stage img {
   display: block;
+  width: 100%;
+  height: 100%;
   max-width: 100%;
   max-height: 100%;
+  min-width: 0;
+  min-height: 0;
   object-fit: contain;
 }
 
@@ -644,6 +694,11 @@ noscript {
   text-align: center;
 }
 
+@media (min-width: 621px) and (max-width: 1050px) {
+  .project-title-badge { display: none; }
+  .hud { max-width: calc(100vw - 325px); }
+}
+
 @media (max-width: 620px) {
   .experience-setup { padding: 16px; }
 
@@ -685,14 +740,25 @@ noscript {
   }
 
   .fair-countdown {
-    gap: 5px;
-    margin-top: 4px;
-    padding-top: 4px;
-    font-size: 9px;
-    letter-spacing: 0.1em;
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 166px;
+    gap: 2px;
+    margin: 0;
+    border-radius: 10px;
+    padding: 5px 7px 6px;
+    letter-spacing: 0.08em;
   }
 
-  .fair-countdown strong { font-size: 23px; }
+  .hud { padding-right: 187px; }
+  .countdown-heading,
+  .countdown-month { font-size: 8px; }
+  .countdown-values { gap: 2px; }
+  .countdown-values > b { margin-top: 1px; font-size: 20px; }
+  .countdown-unit { min-width: 29px; }
+  .countdown-unit strong { font-size: 20px; }
+  .countdown-unit small { margin-top: 2px; font-size: 6px; }
 
   .controls {
     right: 12px;
@@ -735,6 +801,10 @@ noscript {
     top: max(18px, env(safe-area-inset-top));
     right: 16px;
     gap: 5px;
+  }
+
+  .project-title-badge {
+    display: none;
   }
 
   .fullscreen-control {
@@ -783,7 +853,7 @@ noscript {
     font-size: 9px;
   }
 
-  .material-body { height: calc(100% - 48px); }
+  .material-body { height: auto; }
   .slide-stage { padding: 4px 40px; }
   .slide-nav { width: 34px; height: 34px; font-size: 20px; }
 
