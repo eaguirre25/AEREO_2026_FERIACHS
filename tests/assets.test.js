@@ -29,3 +29,15 @@ test('el modelo conserva licencia, atribución y fuente modificable', async () =
     assert.ok(metadata.size > 0, `${relativePath} no puede estar vacío`);
   }
 });
+
+test('el estadio de Chacarita es un GLB web válido', async () => {
+  const stadiumUrl = new URL('../assets/models/landmarks/chacarita/stadium.glb', import.meta.url);
+  const [file, metadata] = await Promise.all([
+    readFile(stadiumUrl, { encoding: null, flag: 'r' }),
+    stat(stadiumUrl),
+  ]);
+
+  assert.equal(file.subarray(0, 4).toString('ascii'), 'glTF');
+  assert.ok(metadata.size > 10_000);
+  assert.ok(metadata.size < 1024 * 1024);
+});

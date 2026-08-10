@@ -5,7 +5,8 @@ import {
   SEGMENT_SECONDS,
   CRUISE_ALTITUDE,
   DEPARTURE_PATH,
-  DEPARTURE_SECONDS
+  DEPARTURE_SECONDS,
+  LANDMARKS
 } from '../route.js';
 
 test('la ruta tiene una duración por cada tramo', () => {
@@ -43,4 +44,14 @@ test('la posta de Billinghurst cae dentro de Villa Billinghurst', () => {
   assert.ok(billinghurst);
   assert.ok(billinghurst.lat >= -34.5832543 && billinghurst.lat <= -34.5669104);
   assert.ok(billinghurst.lng >= -58.5846192 && billinghurst.lng <= -58.5646789);
+});
+
+test('el estadio 3D coincide con la posta de Chacarita', () => {
+  const stadium = LANDMARKS.find(landmark => landmark.id === 'chacarita-stadium');
+  const stop = STOPS.find(item => item.name.includes('Chacarita'));
+  assert.ok(stadium);
+  assert.ok(stop);
+  assert.equal(stadium.lat, stop.lat);
+  assert.equal(stadium.lng, stop.lng);
+  assert.match(stadium.model, /\.glb$/);
 });

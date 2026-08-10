@@ -49,12 +49,15 @@ Villa Billinghurst permanezca dentro de sus límites cartográficos.
 - `route.js` — coordenadas, alturas y tiempos de las postas
 - `app.js` — mapa 3D, avión, cámara y animación
 - `docs/ASSETS_3D.md` — evaluación de aeronaves abiertas
-- `docs/CUSTOM_3D.md` — incorporación futura de modelos propios al mapa
+- `docs/CUSTOM_3D.md` — incorporación de modelos propios al mapa
 - `.github/workflows/pages.yml` — despliegue automático en GitHub Pages desde `main`
 
 El comienzo incluye carreteo, aceleración y rotación sobre la avenida 25 de
 Mayo frente al Campus Miguelete. La geometría y duración de esa maniobra se
 ajustan con `DEPARTURE_PATH` y `DEPARTURE_SECONDS` dentro de `route.js`.
+
+La posta 04 incorpora el estadio de Chacarita como hito GLB georreferenciado.
+Los hitos adicionales se registran en `LANDMARKS`, dentro de `route.js`.
 
 ## Aeronave 3D
 

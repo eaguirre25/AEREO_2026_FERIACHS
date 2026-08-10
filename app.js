@@ -5,7 +5,8 @@ import {
   SEGMENT_SECONDS,
   CRUISE_ALTITUDE,
   DEPARTURE_PATH,
-  DEPARTURE_SECONDS
+  DEPARTURE_SECONDS,
+  LANDMARKS
 } from './route.js';
 
 const initialPlaneState = () => ({
@@ -484,8 +485,72 @@ map.on('load', () => {
       'text-halo-width': 1.5
     }
   });
+  LANDMARKS.forEach(landmark => {
+    map.addLayer(makeLandmarkLayer(landmark), firstLabel?.id);
+  });
   map.addLayer(makeAircraftLayer());
 });
+
+function makeLandmarkLayer(config) {
+  let renderer;
+  let scene;
+  let camera;
+  let model;
+
+  return {
+    id: `landmark-3d-${config.id}`,
+    type: 'custom',
+    renderingMode: '3d',
+    onAdd(layerMap, gl) {
+      camera = new THREE.Camera();
+      scene = new THREE.Scene();
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x59636b, 2.2));
+      const sun = new THREE.DirectionalLight(0xffffff, 2.4);
+      sun.position.set(80, -50, 120);
+      scene.add(sun);
+
+      new GLTFLoader().load(
+        config.model,
+        gltf => {
+          model = gltf.scene;
+          model.scale.setScalar(config.scale ?? 1);
+          model.traverse(object => {
+            object.frustumCulled = false;
+          });
+          scene.add(model);
+          document.documentElement.dataset[config.id.replaceAll('-', '')] = 'loaded';
+          layerMap.triggerRepaint();
+        },
+        undefined,
+        error => console.error(`No se pudo cargar el hito 3D ${config.id}.`, error)
+      );
+
+      renderer = new THREE.WebGLRenderer({
+        canvas: layerMap.getCanvas(),
+        context: gl,
+        antialias: true
+      });
+      renderer.autoClear = false;
+    },
+    render(gl, args) {
+      if (!model) return;
+      const coordinate = maplibregl.MercatorCoordinate.fromLngLat(
+        [config.lng, config.lat],
+        config.altitude ?? 0
+      );
+      const units = coordinate.meterInMercatorCoordinateUnits();
+      const projection = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
+      const local = new THREE.Matrix4()
+        .makeTranslation(coordinate.x, coordinate.y, coordinate.z)
+        .scale(new THREE.Vector3(units, -units, units));
+      const rotation = new THREE.Matrix4()
+        .makeRotationZ((config.rotation ?? 0) * Math.PI / 180);
+      camera.projectionMatrix = projection.multiply(local).multiply(rotation);
+      renderer.resetState();
+      renderer.render(scene, camera);
+    }
+  };
+}
 
 function makeAircraftLayer() {
   let renderer;

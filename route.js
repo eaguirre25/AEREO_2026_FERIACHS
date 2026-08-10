@@ -21,3 +21,15 @@ export const DEPARTURE_PATH = [
   {lng:-58.52375,lat:-34.58103,alt:72}
 ];
 export const DEPARTURE_SECONDS = [6,8];
+
+export const LANDMARKS = [
+  {
+    id: 'chacarita-stadium',
+    model: './assets/models/landmarks/chacarita/stadium.glb',
+    lng: -58.52820,
+    lat: -34.56734,
+    altitude: 0.8,
+    rotation: -45,
+    scale: 1
+  }
+];
