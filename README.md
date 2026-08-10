@@ -4,7 +4,7 @@ Experiencia web 3D guiada por el Partido de General San Martín, Buenos Aires.
 
 ## Prototipo funcional
 
-El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No requiere API key para la base cartográfica. El modo híbrido combina imágenes satelitales de Esri con las calles y referencias vectoriales actuales; puede alternarse con el mapa tradicional. El vehículo principal es el **Airship de C2DH/zoomland**, un dirigible GLB comprimido con Draco bajo AGPL-3.0. Si el asset no puede cargarse, la aplicación conserva automáticamente un dirigible geométrico liviano como respaldo.
+El recorrido usa **MapLibre GL JS + OpenFreeMap/OpenStreetMap + Three.js**. No requiere API key para la base cartográfica. La vista inicial es el mapa vectorial; el botón `SATÉLITE` permite alternar con imágenes de Esri conservando calles y referencias actuales. El vehículo principal es el **Airship de C2DH/zoomland**, un dirigible GLB comprimido con Draco bajo AGPL-3.0. Si el asset no puede cargarse, la aplicación conserva automáticamente un dirigible geométrico liviano como respaldo.
 
 ## Las 9 postas
 
@@ -34,6 +34,9 @@ exacta en pantalla.
 La cuenta regresiva reproduce el formato visual del proyecto original y muestra
 días, horas y minutos. El tramo de salida desde UNSAM hasta la Posta 2 usa una
 aceleración adicional para reducir la espera inicial.
+
+Toda la interfaz usa la familia Rajdhani distribuida localmente en cinco pesos,
+por lo que botones, portadas, carteles y paneles mantienen la misma tipografía.
 
 ## Ejecutar localmente
 
@@ -91,6 +94,11 @@ El dirigible usa escala 16,8: cuatro veces la escala del primer prototipo y el
 doble de la versión anterior. La hélice `Fan` de cola se
 amplía y anima según el avance, y una estela tridimensional semitransparente
 permanece detrás del vehículo durante el recorrido.
+
+Ambos laterales llevan el cartel “Ciencia y ficción” como publicidad integrada
+al modelo. La cámara puede orbitar alrededor del dirigible arrastrando con mouse
+o dedo durante el vuelo y en las detenciones; la rueda permite ajustar distancia
+y un doble clic recupera la vista posterior inicial.
 
 Las postas muestran la localidad correspondiente al punto geográfico. Durante
 el vuelo, la localidad atravesada se resalta suavemente con una paleta roja,

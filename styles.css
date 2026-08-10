@@ -1,4 +1,47 @@
-* { box-sizing: border-box; }
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('./assets/fonts/rajdhani/Rajdhani-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('./assets/fonts/rajdhani/Rajdhani-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('./assets/fonts/rajdhani/Rajdhani-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('./assets/fonts/rajdhani/Rajdhani-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rajdhani';
+  src: url('./assets/fonts/rajdhani/Rajdhani-Bold.ttf') format('truetype');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Rajdhani', sans-serif;
+}
 
 html,
 body,
@@ -12,10 +55,13 @@ body {
   overflow: hidden;
   background: #071017;
   color: #fff;
-  font-family: Rajdhani, Inter, system-ui, sans-serif;
+  font-family: 'Rajdhani', sans-serif;
 }
 
 [hidden] { display: none !important; }
+
+.maplibregl-canvas { cursor: grab; }
+.maplibregl-canvas.orbiting { cursor: grabbing; }
 
 .experience-setup {
   position: fixed;
@@ -64,7 +110,7 @@ body {
   padding: 12px 18px;
   background: #fff;
   color: #09202b;
-  font: 800 14px Rajdhani, system-ui;
+  font: 800 14px 'Rajdhani', sans-serif;
   letter-spacing: 0.1em;
   cursor: pointer;
 }
@@ -179,7 +225,7 @@ button:focus-visible {
   padding: 7px 12px 8px;
   background: rgba(255, 255, 255, 0.84);
   color: #101010;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Rajdhani', sans-serif;
   font-weight: 800;
   letter-spacing: 0.12em;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
@@ -200,7 +246,7 @@ button:focus-visible {
 
 .countdown-values > b {
   margin-top: 2px;
-  font: 800 29px/1 Arial, sans-serif;
+  font: 800 29px/1 'Rajdhani', sans-serif;
 }
 
 .countdown-unit {
@@ -210,7 +256,7 @@ button:focus-visible {
 }
 
 .countdown-unit strong {
-  font: 800 30px/0.92 Arial, sans-serif;
+  font: 800 30px/0.92 'Rajdhani', sans-serif;
   letter-spacing: 0;
 }
 
@@ -255,7 +301,7 @@ button:focus-visible {
   padding: 10px 16px;
   background: rgba(5, 13, 18, 0.82);
   color: #fff;
-  font: 600 13px Rajdhani, system-ui;
+  font: 600 13px 'Rajdhani', sans-serif;
   letter-spacing: 0.08em;
   backdrop-filter: blur(10px);
   cursor: pointer;
@@ -315,7 +361,7 @@ button:focus-visible {
   background: linear-gradient(to bottom, color-mix(in srgb, var(--posta-color) 14%, transparent), transparent 72%);
   color: rgba(255, 255, 255, 0.68);
   overflow: hidden;
-  font: 600 10px Rajdhani, system-ui;
+  font: 600 10px 'Rajdhani', sans-serif;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -333,7 +379,7 @@ button:focus-visible {
 .route-nav button small {
   max-width: 100%;
   overflow: hidden;
-  font: 700 10px Rajdhani, system-ui;
+  font: 700 10px 'Rajdhani', sans-serif;
   text-overflow: ellipsis;
 }
 
@@ -368,7 +414,7 @@ button:focus-visible {
   padding: 8px 12px;
   background: rgba(4, 13, 19, 0.78);
   color: #fff;
-  font: 700 11px Rajdhani, system-ui;
+  font: 700 11px 'Rajdhani', sans-serif;
   letter-spacing: 0.08em;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
@@ -539,7 +585,7 @@ button:focus-visible {
   padding: 9px 15px;
   background: #fff;
   color: #102a36;
-  font: 800 12px Rajdhani, system-ui;
+  font: 800 12px 'Rajdhani', sans-serif;
   letter-spacing: 0.08em;
   cursor: pointer;
 }

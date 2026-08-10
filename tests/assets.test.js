@@ -217,3 +217,52 @@ test('el panel de materiales reserva el alto real del título sin cortar las pla
   assert.match(styles, /\.material-body\s*\{[\s\S]*flex: 1 1 auto;[\s\S]*height: auto;/);
   assert.match(styles, /\.slide-stage img\s*\{[\s\S]*width: 100%;[\s\S]*height: 100%;[\s\S]*object-fit: contain;/);
 });
+
+test('la experiencia inicia en mapa vectorial y ofrece el cambio a satélite', async () => {
+  const [source, html] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8')
+  ]);
+  assert.match(html, /id="stopMeta">UNSAM · CAMPUS MIGUELETE</);
+  assert.doesNotMatch(html, /VILLA MAIPÚ \/ VILLA LYNCH/);
+  assert.match(html, /id="mapModeBtn"[^>]*aria-pressed="false"[^>]*>SATÉLITE</);
+  assert.match(source, /let satelliteEnabled = false/);
+  assert.match(source, /layout: \{ visibility: 'none' \}/);
+  assert.match(source, /setMapMode\(false\)/);
+  assert.match(source, /mapModeBtn\.textContent = satelliteEnabled \? 'MAPA' : 'SATÉLITE'/);
+});
+
+test('toda la interfaz usa la familia Rajdhani local en sus cinco pesos', async () => {
+  const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+  const weights = ['Light', 'Regular', 'Medium', 'SemiBold', 'Bold'];
+  for (const weight of weights) {
+    const font = await stat(new URL(`../assets/fonts/rajdhani/Rajdhani-${weight}.ttf`, import.meta.url));
+    assert.ok(font.size > 300_000, `falta el peso Rajdhani ${weight}`);
+    assert.match(styles, new RegExp(`Rajdhani-${weight}\\.ttf`));
+  }
+  const license = await stat(new URL('../assets/fonts/rajdhani/OFL.txt', import.meta.url));
+  assert.ok(license.size > 4_000);
+  assert.match(styles, /\*\s*\{[\s\S]*font-family: 'Rajdhani', sans-serif;/);
+  assert.doesNotMatch(styles, /\bInter\b|\bArial\b|Georgia|Times New Roman|system-ui/);
+});
+
+test('el dirigible lleva publicidad en ambos laterales y admite cámara orbital', async () => {
+  const [source, texture] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../assets/textures/airship/ciencia-y-ficcion.webp', import.meta.url))
+  ]);
+  assert.equal(texture.subarray(0, 4).toString('ascii'), 'RIFF');
+  assert.equal(texture.subarray(8, 12).toString('ascii'), 'WEBP');
+  assert.ok(texture.length > 100_000 && texture.length < 1_000_000);
+  assert.match(source, /function attachAdvertising\(model, orientation = 'gltf'\)/);
+  assert.match(source, /group\.add\(sideA, sideB\)/);
+  assert.match(source, /ciencia-y-ficcion\.webp/);
+  assert.match(source, /dataset\.airshipAdvertising = 'ciencia-y-ficcion'/);
+  assert.match(source, /dragPan: false/);
+  assert.match(source, /touchZoomRotate: false/);
+  assert.match(source, /function bindCameraOrbitControls\(\)/);
+  assert.match(source, /addEventListener\('pointermove'/);
+  assert.match(source, /addEventListener\('wheel'/);
+  assert.match(source, /viewBearing = position\.bearing \+ cameraOrbit\.azimuth/);
+  assert.match(source, /cameraOrbit = \{ \.\.\.CAMERA_ORBIT_DEFAULT \}/);
+});

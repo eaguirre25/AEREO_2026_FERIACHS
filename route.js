@@ -1,5 +1,5 @@
 export const STOPS = [
-  {id:1,name:'Villa Maipú / Villa Lynch',title:'Punto de partida',label:'UNSAM · LÍMITE LOCAL',place:'UNSAM · Campus Miguelete',lng:-58.5266950692,lat:-34.5798390695,alt:55,zoom:17.2},
+  {id:1,name:'UNSAM',title:'Punto de partida',place:'Campus Miguelete',lng:-58.5266950692,lat:-34.5798390695,alt:55,zoom:17.2},
   {id:2,name:'Villa Lynch',title:'Mirador: afinar lo que vemos',label:'SOBREVUELO',place:'Villa Lynch',lng:-58.523437722,lat:-34.590146441,alt:135,zoom:15.7},
   {id:3,name:'San Martín',title:'Situación problemática',label:'CENTRO · SOBREVUELO',place:'San Martín centro',lng:-58.542014482,lat:-34.579698685,alt:120,zoom:16.0},
   {id:4,name:'Villa Maipú',title:'Pregunta de investigación',label:'CHACARITA · PASADA LENTA',place:'Estadio de Chacarita Juniors',lng:-58.52820,lat:-34.56734,alt:95,zoom:16.4},
