@@ -159,6 +159,10 @@ test('la portada permite elegir dispositivo y recomienda usar el celular horizon
   assert.match(html, /posición horizontal para mejorar la experiencia/);
   assert.match(source, /finishExperienceSetup\('desktop'\)/);
   assert.match(source, /finishExperienceSetup\('mobile'\)/);
+  assert.match(source, /new URLSearchParams\(window\.location\.search\)\.get\('device'\)/);
+  assert.match(source, /requestedExperienceMode === 'desktop'/);
+  assert.match(source, /requestedExperienceMode === 'mobile'/);
+  assert.match(source, /showMobileOrientationPrompt\(\)/);
 });
 
 test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async () => {

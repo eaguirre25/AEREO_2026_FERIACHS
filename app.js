@@ -274,15 +274,24 @@ function finishExperienceSetup(mode) {
   });
 }
 
-mobileModeBtn.addEventListener('click', () => {
+function showMobileOrientationPrompt() {
   document.documentElement.dataset.experienceMode = 'mobile';
   modeChoice.hidden = true;
   orientationPrompt.hidden = false;
   continueMobileBtn.focus();
-});
+}
+
+mobileModeBtn.addEventListener('click', showMobileOrientationPrompt);
 
 desktopModeBtn.addEventListener('click', () => finishExperienceSetup('desktop'));
 continueMobileBtn.addEventListener('click', () => finishExperienceSetup('mobile'));
+
+const requestedExperienceMode = new URLSearchParams(window.location.search).get('device');
+if (requestedExperienceMode === 'desktop') {
+  finishExperienceSetup('desktop');
+} else if (requestedExperienceMode === 'mobile') {
+  showMobileOrientationPrompt();
+}
 
 function cancelAnimation() {
   if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
