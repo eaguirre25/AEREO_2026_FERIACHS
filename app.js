@@ -11,8 +11,11 @@ import {
 } from './route.js';
 
 const AIRSHIP_BASE_SCALE = 16.8;
-const FLIGHT_SPEED_MULTIPLIER = 1.3;
+const FLIGHT_SPEED_MULTIPLIER = 1.56;
 const INITIAL_LEG_SPEED_MULTIPLIER = 1.6;
+const PROPELLER_SPIN_MULTIPLIER = 1.9;
+const FREE_FLIGHT_SPEEDS_KMH = [20, 40, 60, 90, 120];
+const FREE_FLIGHT_TURN_DEGREES_PER_SECOND = 72;
 const TRAIL_MAX_POINTS = 42;
 const TRAIL_SAMPLE_MS = 140;
 const FAIR_TARGET_TIMESTAMP = Date.parse('2026-10-15T00:00:00-03:00');
@@ -113,6 +116,14 @@ const materialOverlay = $('#materialOverlay');
 const materialTitle = $('#materialTitle');
 const materialBody = $('#materialBody');
 const closeMaterialBtn = $('#closeMaterialBtn');
+const freeModeBtn = $('#freeModeBtn');
+const freeFlightControls = $('#freeFlightControls');
+const freeJoystick = $('#freeJoystick');
+const freeJoystickKnob = $('#freeJoystickKnob');
+const freeSlowerBtn = $('#freeSlowerBtn');
+const freeFasterBtn = $('#freeFasterBtn');
+const freeSpeedOutput = $('#freeSpeedOutput');
+const exitFreeModeBtn = $('#exitFreeModeBtn');
 
 let flightState = 'ready';
 let flightStage = 'departure';
@@ -135,6 +146,10 @@ let materialReturnState = 'ready';
 let materialSlideIndex = 0;
 let lastMaterialFocus = null;
 let cameraOrbit = { ...CAMERA_ORBIT_DEFAULT };
+let freeFlightSpeedIndex = 2;
+let freeFlightLastFrame = 0;
+const freeFlightKeys = new Set();
+const freeFlightInput = { turn: 0, thrust: 0 };
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
@@ -808,8 +823,167 @@ function completeFlight() {
   planeState = { ...planeState, throttle: 0.28, bank: 0, pitch: 0 };
   setFlightButton('VOLVER A VOLAR');
   setStatus('Recorrido completo · José L. Suárez');
+  freeModeBtn.hidden = false;
   triggerCelebration();
   map.easeTo({ zoom: 14.7, pitch: 62, duration: 2500, essential: false });
+}
+
+function updateFreeFlightSpeed(change = 0) {
+  freeFlightSpeedIndex = Math.max(
+    0,
+    Math.min(FREE_FLIGHT_SPEEDS_KMH.length - 1, freeFlightSpeedIndex + change)
+  );
+  const speed = FREE_FLIGHT_SPEEDS_KMH[freeFlightSpeedIndex];
+  freeSpeedOutput.textContent = `${speed} KM/H`;
+  freeSlowerBtn.disabled = freeFlightSpeedIndex === 0;
+  freeFasterBtn.disabled = freeFlightSpeedIndex === FREE_FLIGHT_SPEEDS_KMH.length - 1;
+  document.documentElement.dataset.freeFlightSpeed = String(speed);
+}
+
+function syncFreeFlightState() {
+  document.documentElement.dataset.freeFlightLng = planeState.lng.toFixed(7);
+  document.documentElement.dataset.freeFlightLat = planeState.lat.toFixed(7);
+  document.documentElement.dataset.freeFlightBearing = planeState.bearing.toFixed(2);
+}
+
+function resetFreeFlightInput() {
+  freeFlightKeys.clear();
+  freeFlightInput.turn = 0;
+  freeFlightInput.thrust = 0;
+  freeJoystickKnob.style.transform = 'translate(0px, 0px)';
+}
+
+function animateFreeFlight(now) {
+  if (flightState !== 'free') return;
+
+  const elapsedSeconds = Math.min(0.05, Math.max(0, (now - freeFlightLastFrame) / 1000));
+  freeFlightLastFrame = now;
+  const keyboardTurn = (freeFlightKeys.has('ArrowRight') ? 1 : 0)
+    - (freeFlightKeys.has('ArrowLeft') ? 1 : 0);
+  const keyboardThrust = (freeFlightKeys.has('ArrowUp') ? 1 : 0)
+    - (freeFlightKeys.has('ArrowDown') ? 1 : 0);
+  const turn = Math.max(-1, Math.min(1, keyboardTurn + freeFlightInput.turn));
+  const thrust = Math.max(-1, Math.min(1, keyboardThrust + freeFlightInput.thrust));
+  const nextBearing = (
+    planeState.bearing + turn * FREE_FLIGHT_TURN_DEGREES_PER_SECOND * elapsedSeconds + 360
+  ) % 360;
+  const distanceMeters = thrust
+    * (FREE_FLIGHT_SPEEDS_KMH[freeFlightSpeedIndex] / 3.6)
+    * elapsedSeconds;
+  const radians = nextBearing * Math.PI / 180;
+  const northMeters = Math.cos(radians) * distanceMeters;
+  const eastMeters = Math.sin(radians) * distanceMeters;
+  const latitudeRadians = planeState.lat * Math.PI / 180;
+  const longitudeMetersPerDegree = 111320 * Math.max(0.2, Math.cos(latitudeRadians));
+
+  planeState = {
+    ...planeState,
+    lng: planeState.lng + eastMeters / longitudeMetersPerDegree,
+    lat: planeState.lat + northMeters / 111320,
+    alt: Math.max(120, planeState.alt),
+    bearing: nextBearing,
+    bank: -turn * 6,
+    pitch: thrust * 1.5,
+    scale: 1,
+    throttle: 0.58 + Math.abs(thrust) * 0.35
+  };
+  setAltitude(planeState.alt);
+  recordTrail(planeState, now);
+  updateActiveLocality(planeState);
+  cameraFollow(planeState);
+  syncFreeFlightState();
+  map.triggerRepaint();
+  animationFrameId = requestAnimationFrame(animateFreeFlight);
+}
+
+function enterFreeFlight() {
+  cancelAnimation();
+  cancelCelebration();
+  resetFreeFlightInput();
+  flightState = 'free';
+  flightStage = 'route';
+  planeState = {
+    ...planeState,
+    alt: Math.max(120, planeState.alt),
+    bank: 0,
+    pitch: 0,
+    scale: 1,
+    throttle: 0.62
+  };
+  cameraOrbit = { ...CAMERA_ORBIT_DEFAULT };
+  freeModeBtn.hidden = true;
+  freeFlightControls.hidden = false;
+  document.documentElement.dataset.flightMode = 'free';
+  updateFreeFlightSpeed();
+  syncFreeFlightState();
+  setStatus('Modo libre · usá los controles para pilotear el zepelín');
+  freeFlightLastFrame = performance.now();
+  animationFrameId = requestAnimationFrame(animateFreeFlight);
+}
+
+function exitFreeFlight() {
+  cancelAnimation();
+  resetFreeFlightInput();
+  flightState = 'completed';
+  planeState = { ...planeState, throttle: 0.28, bank: 0, pitch: 0 };
+  freeFlightControls.hidden = true;
+  freeModeBtn.hidden = false;
+  document.documentElement.dataset.flightMode = 'route';
+  setFlightButton('VOLVER A VOLAR');
+  setStatus('Modo libre finalizado · podés volver a activarlo');
+  map.triggerRepaint();
+}
+
+function bindFreeFlightControls() {
+  const flightKeys = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+  window.addEventListener('keydown', event => {
+    if (flightState !== 'free' || !flightKeys.has(event.key)) return;
+    freeFlightKeys.add(event.key);
+    event.preventDefault();
+  });
+  window.addEventListener('keyup', event => {
+    if (!flightKeys.has(event.key)) return;
+    freeFlightKeys.delete(event.key);
+    if (flightState === 'free') event.preventDefault();
+  });
+  window.addEventListener('blur', resetFreeFlightInput);
+
+  let joystickPointerId = null;
+  const moveJoystick = event => {
+    if (event.pointerId !== joystickPointerId) return;
+    const bounds = freeJoystick.getBoundingClientRect();
+    const radius = Math.max(1, Math.min(bounds.width, bounds.height) / 2 - 22);
+    let x = event.clientX - (bounds.left + bounds.width / 2);
+    let y = event.clientY - (bounds.top + bounds.height / 2);
+    const distance = Math.hypot(x, y);
+    if (distance > radius) {
+      x *= radius / distance;
+      y *= radius / distance;
+    }
+    freeFlightInput.turn = x / radius;
+    freeFlightInput.thrust = -y / radius;
+    freeJoystickKnob.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    event.preventDefault();
+  };
+  const releaseJoystick = event => {
+    if (event.pointerId !== joystickPointerId) return;
+    if (freeJoystick.hasPointerCapture(event.pointerId)) {
+      freeJoystick.releasePointerCapture(event.pointerId);
+    }
+    joystickPointerId = null;
+    freeFlightInput.turn = 0;
+    freeFlightInput.thrust = 0;
+    freeJoystickKnob.style.transform = 'translate(0px, 0px)';
+  };
+  freeJoystick.addEventListener('pointerdown', event => {
+    if (flightState !== 'free' || joystickPointerId !== null) return;
+    joystickPointerId = event.pointerId;
+    freeJoystick.setPointerCapture(event.pointerId);
+    moveJoystick(event);
+  });
+  freeJoystick.addEventListener('pointermove', moveJoystick);
+  freeJoystick.addEventListener('pointerup', releaseJoystick);
+  freeJoystick.addEventListener('pointercancel', releaseJoystick);
 }
 
 function animate(now) {
@@ -916,6 +1090,10 @@ function start() {
 function reset(animateMap = true) {
   cancelAnimation();
   cancelCelebration();
+  resetFreeFlightInput();
+  freeModeBtn.hidden = true;
+  freeFlightControls.hidden = true;
+  document.documentElement.dataset.flightMode = 'route';
   materialOverlay.classList.remove('open');
   materialOverlay.setAttribute('aria-hidden', 'true');
   flightState = 'ready';
@@ -957,6 +1135,10 @@ document.addEventListener('fullscreenerror', () => {
 });
 stopMaterialBtn.addEventListener('click', () => openMaterial(currentStopIndex));
 closeMaterialBtn.addEventListener('click', closeMaterial);
+freeModeBtn.addEventListener('click', enterFreeFlight);
+exitFreeModeBtn.addEventListener('click', exitFreeFlight);
+freeSlowerBtn.addEventListener('click', () => updateFreeFlightSpeed(-1));
+freeFasterBtn.addEventListener('click', () => updateFreeFlightSpeed(1));
 materialOverlay.addEventListener('click', event => {
   if (event.target === materialOverlay) closeMaterial();
 });
@@ -968,6 +1150,8 @@ document.addEventListener('keydown', event => {
 });
 
 bindCameraOrbitControls();
+bindFreeFlightControls();
+updateFreeFlightSpeed();
 setStop(0);
 setAltitude(planeState.alt);
 updateFairCountdown();
@@ -1628,7 +1812,9 @@ function makeAirshipLayer() {
         advertisingSides[1].visible = cameraSide >= 0;
       }
       fans.forEach(fan => {
-        const rotationStep = 0.035 + (planeState.throttle ?? 0.6) * 0.11;
+        const rotationStep = (
+          0.035 + (planeState.throttle ?? 0.6) * 0.11
+        ) * PROPELLER_SPIN_MULTIPLIER;
         if (fan.userData.spinAxis === 'z') fan.rotation.z -= rotationStep;
         else fan.rotation.x += rotationStep;
       });

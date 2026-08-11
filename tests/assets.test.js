@@ -111,6 +111,8 @@ test('la escena carga y anima la hélice de feria', async () => {
   assert.match(source, /aspas_feria_3d\.glb/);
   assert.match(source, /getObjectByName\('aspas_rotativas'\)/);
   assert.match(source, /dataset\.propellerModel = 'feria'/);
+  assert.match(source, /PROPELLER_SPIN_MULTIPLIER = 1\.9/);
+  assert.match(source, /rotationStep = \([\s\S]*\) \* PROPELLER_SPIN_MULTIPLIER/);
 });
 
 test('la pantalla omite rótulos de vuelo y celebra la Posta 9', async () => {
@@ -188,7 +190,7 @@ test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async ()
   assert.match(source, /function stopAtPost\(index\)/);
   assert.match(source, /materialReturnState === 'stopped'/);
   assert.match(source, /resumeFlight\(true\)/);
-  assert.match(source, /FLIGHT_SPEED_MULTIPLIER = 1\.3/);
+  assert.match(source, /FLIGHT_SPEED_MULTIPLIER = 1\.56/);
   assert.match(source, /INITIAL_LEG_SPEED_MULTIPLIER = 1\.6/);
   assert.match(source, /initialLeg = flightStage === 'departure' \|\| segment === 0/);
   assert.match(source, /function stopAtPost\(index\)[\s\S]*throttle: 0\.28/);
@@ -204,6 +206,27 @@ test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async ()
   }
   const sourceNote = await stat(new URL('../assets/materials/posta-2/SOURCE.md', import.meta.url));
   assert.ok(sourceNote.size > 0);
+});
+
+test('el final habilita vuelo libre con teclado, control táctil y selector de velocidad', async () => {
+  const [source, html, styles] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8'),
+    readFile(new URL('../styles.css', import.meta.url), 'utf8')
+  ]);
+  assert.match(html, /id="freeModeBtn"[^>]*>ZEPELÍN: MODO LIBRE<\/button>/);
+  assert.match(html, /id="freeFlightControls"/);
+  assert.match(html, /id="freeJoystick"/);
+  assert.match(html, /id="freeSlowerBtn"/);
+  assert.match(html, /id="freeFasterBtn"/);
+  assert.match(source, /function completeFlight\(\)[\s\S]*freeModeBtn\.hidden = false/);
+  assert.match(source, /function enterFreeFlight\(\)/);
+  assert.match(source, /function animateFreeFlight\(now\)/);
+  assert.match(source, /FREE_FLIGHT_SPEEDS_KMH = \[20, 40, 60, 90, 120\]/);
+  assert.match(source, /new Set\(\['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'\]\)/);
+  assert.match(source, /freeJoystick\.addEventListener\('pointerdown'/);
+  assert.match(styles, /\.free-joystick[\s\S]*border-radius: 50%/);
+  assert.match(styles, /html\[data-flight-mode='free'\]/);
 });
 
 test('el HUD muestra el título temático y la cuenta regresiva sin revelar la fecha', async () => {
