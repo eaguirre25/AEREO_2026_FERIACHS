@@ -386,7 +386,7 @@ button:focus-visible {
 .controls {
   position: fixed;
   right: 24px;
-  bottom: 104px;
+  bottom: 142px;
   z-index: 6;
   display: flex;
   align-items: end;
@@ -465,7 +465,7 @@ button:focus-visible {
 
 .route-nav button {
   display: flex;
-  height: 46px;
+  height: 82px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -485,15 +485,90 @@ button:focus-visible {
 
 .route-nav button span {
   color: var(--posta-color);
-  font-size: 14px;
+  font-size: 28px;
   font-weight: 700;
+  line-height: 1;
 }
 
 .route-nav button small {
   max-width: 100%;
   overflow: hidden;
-  font: 700 10px 'Rajdhani', sans-serif;
+  font: 700 20px 'Rajdhani', sans-serif;
+  line-height: 1.05;
   text-overflow: ellipsis;
+}
+
+.posta-impact {
+  position: fixed;
+  inset: 0;
+  z-index: 13;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.posta-impact.active { visibility: visible; }
+
+.posta-impact-particles,
+.posta-impact-label {
+  position: absolute;
+  top: var(--impact-y, 50%);
+  left: var(--impact-x, 50%);
+}
+
+.posta-impact-particles i {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50% 8% 50% 12%;
+  background: var(--particle-color, #fff);
+  box-shadow: 0 0 18px var(--particle-color, #fff);
+  opacity: 0;
+}
+
+.posta-impact.active .posta-impact-particles i {
+  animation: posta-impact-burst 850ms var(--particle-delay, 0ms) cubic-bezier(.12, .72, .18, 1) both;
+}
+
+.posta-impact-label {
+  min-width: 220px;
+  border: 3px solid #fff;
+  border-radius: 16px;
+  padding: 12px 22px;
+  background: rgba(4, 14, 20, 0.92);
+  color: var(--impact-color, #fff);
+  font: 700 clamp(34px, 5vw, 72px) 'Rajdhani', sans-serif;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-shadow: 0 0 16px var(--impact-color, #fff), 3px 4px 0 #101820;
+  box-shadow: 0 0 36px var(--impact-color, #fff), 0 18px 50px rgba(0, 0, 0, 0.55);
+  transform: translate(-50%, -50%) scale(0.2);
+  transform-origin: center;
+}
+
+.posta-impact.active .posta-impact-label {
+  animation: posta-label-flight 1050ms 80ms cubic-bezier(.15, .76, .22, 1) both;
+}
+
+@keyframes posta-impact-burst {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.2) rotate(0); }
+  75% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--particle-x)), calc(-50% + var(--particle-y))) scale(1.4) rotate(var(--particle-turn));
+  }
+}
+
+@keyframes posta-label-flight {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.15) rotate(-8deg); }
+  18% { opacity: 1; transform: translate(-50%, -50%) scale(1.12) rotate(2deg); }
+  42% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--impact-dx)), calc(-50% + var(--impact-dy))) scale(0.22);
+  }
 }
 
 .route-nav button.active {
@@ -1020,7 +1095,7 @@ noscript {
 
   .controls {
     right: 12px;
-    bottom: calc(90px + env(safe-area-inset-bottom));
+    bottom: calc(116px + env(safe-area-inset-bottom));
     left: 12px;
     align-items: flex-end;
     justify-content: flex-end;
@@ -1052,8 +1127,9 @@ noscript {
     padding: 7px 8px 6px;
   }
 
-  .route-nav button span { font-size: 12px; }
-  .route-nav button small { font-size: 9px; }
+  .route-nav button { height: 72px; }
+  .route-nav button span { font-size: 24px; }
+  .route-nav button small { font-size: 18px; }
 
   .top-tools {
     top: max(18px, env(safe-area-inset-top));

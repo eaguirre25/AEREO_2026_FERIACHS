@@ -106,6 +106,27 @@ test('la interfaz permite avanzar y retroceder entre nueve postas coloreadas', a
   assert.match(source, /stopName\.textContent = `POSTA \$\{stop\.id\}`/);
 });
 
+test('las postas tienen números 3D, impacto y rótulo que vuela al cartel fijo', async () => {
+  const [source, html, styles] = await Promise.all([
+    readFile(new URL('../app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../index.html', import.meta.url), 'utf8'),
+    readFile(new URL('../styles.css', import.meta.url), 'utf8')
+  ]);
+  assert.match(html, /id="postaImpact"/);
+  assert.match(html, /id="postaImpactLabel"/);
+  assert.match(source, /function makePostaNumbersLayer\(\)/);
+  assert.match(source, /new THREE\.BoxGeometry\(width, depth, height\)/);
+  assert.match(source, /id: 'postas-numeros-3d'/);
+  assert.match(source, /function triggerPostaImpact\(index\)/);
+  assert.match(source, /function stopAtPost\(index\)[\s\S]*triggerPostaImpact\(index\)/);
+  assert.match(source, /function completeFlight\(\)[\s\S]*triggerPostaImpact\(STOPS\.length - 1\)/);
+  assert.match(source, /dataset\.airshipImpact = 'burst'/);
+  assert.match(styles, /\.route-nav button span \{[\s\S]*font-size: 28px/);
+  assert.match(styles, /font: 700 20px 'Rajdhani'/);
+  assert.match(styles, /@keyframes posta-impact-burst/);
+  assert.match(styles, /@keyframes posta-label-flight/);
+});
+
 test('la escena carga y anima la hélice de feria', async () => {
   const source = await readFile(new URL('../app.js', import.meta.url), 'utf8');
   assert.match(source, /aspas_feria_3d\.glb/);
