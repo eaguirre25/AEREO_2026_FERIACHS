@@ -125,6 +125,9 @@ const freeSlowerBtn = $('#freeSlowerBtn');
 const freeFasterBtn = $('#freeFasterBtn');
 const freeSpeedOutput = $('#freeSpeedOutput');
 const exitFreeModeBtn = $('#exitFreeModeBtn');
+const postaImpact = $('#postaImpact');
+const postaImpactParticles = $('#postaImpactParticles');
+const postaImpactLabel = $('#postaImpactLabel');
 
 let flightState = 'ready';
 let flightStage = 'departure';
@@ -151,6 +154,10 @@ let freeFlightSpeedIndex = 2;
 let freeFlightLastFrame = 0;
 const freeFlightKeys = new Set();
 const freeFlightInput = { turn: 0, thrust: 0 };
+const impactedPostas = new Set();
+let airshipImpactStartedAt = -Infinity;
+let postaImpactHideTimer = null;
+let postaArrivalTimer = null;
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
@@ -361,6 +368,68 @@ function triggerCelebration() {
   celebrationTimer = window.setTimeout(cancelCelebration, 6500);
 }
 
+function cancelPostaImpact() {
+  window.clearTimeout(postaImpactHideTimer);
+  window.clearTimeout(postaArrivalTimer);
+  postaImpactHideTimer = null;
+  postaArrivalTimer = null;
+  postaImpact.classList.remove('active');
+  postaImpact.setAttribute('aria-hidden', 'true');
+}
+
+function triggerPostaImpact(index) {
+  window.clearTimeout(postaImpactHideTimer);
+  const stop = STOPS[index];
+  const color = POSTA_COLORS[index];
+  const projected = map.project([stop.lng, stop.lat]);
+  const target = stopMaterialBtn.getBoundingClientRect();
+  const targetX = target.left + Math.min(target.width * 0.34, 150);
+  const targetY = target.top + Math.min(target.height * 0.3, 55);
+  const originX = Math.max(140, Math.min(window.innerWidth - 140, projected.x));
+  const originY = Math.max(85, Math.min(window.innerHeight - 85, projected.y));
+
+  impactedPostas.add(index);
+  airshipImpactStartedAt = performance.now();
+  postaImpactLabel.textContent = `POSTA ${stop.id}`;
+  postaImpact.style.setProperty('--impact-color', color);
+  postaImpact.style.setProperty('--impact-x', `${originX}px`);
+  postaImpact.style.setProperty('--impact-y', `${originY}px`);
+  postaImpact.style.setProperty('--impact-dx', `${targetX - originX}px`);
+  postaImpact.style.setProperty('--impact-dy', `${targetY - originY}px`);
+  postaImpactParticles.replaceChildren();
+  for (let particleIndex = 0; particleIndex < 30; particleIndex += 1) {
+    const particle = document.createElement('i');
+    const angle = particleIndex / 30 * Math.PI * 2 + Math.random() * 0.18;
+    const reach = 85 + Math.random() * 150;
+    particle.style.setProperty('--particle-x', `${Math.cos(angle) * reach}px`);
+    particle.style.setProperty('--particle-y', `${Math.sin(angle) * reach}px`);
+    particle.style.setProperty('--particle-turn', `${360 + Math.random() * 720}deg`);
+    particle.style.setProperty('--particle-delay', `${Math.random() * 90}ms`);
+    particle.style.setProperty('--particle-color', POSTA_COLORS[
+      (index + particleIndex) % POSTA_COLORS.length
+    ]);
+    postaImpactParticles.appendChild(particle);
+  }
+
+  postaImpact.classList.remove('active');
+  void postaImpact.offsetWidth;
+  postaImpact.classList.add('active');
+  postaImpact.setAttribute('aria-hidden', 'false');
+  document.documentElement.dataset.lastPostaImpact = String(stop.id);
+  document.documentElement.dataset.airshipImpact = 'burst';
+  map.triggerRepaint();
+  postaImpactHideTimer = window.setTimeout(() => {
+    postaImpact.classList.remove('active');
+    postaImpact.setAttribute('aria-hidden', 'true');
+    document.documentElement.dataset.airshipImpact = 'complete';
+  }, 1320);
+}
+
+function schedulePostaImpact(index, delay = 0) {
+  window.clearTimeout(postaArrivalTimer);
+  postaArrivalTimer = window.setTimeout(() => triggerPostaImpact(index), delay);
+}
+
 function setFlightButton(label, pressed = false) {
   startBtn.textContent = label;
   startBtn.disabled = false;
@@ -470,6 +539,8 @@ function previewStop(index) {
   const stop = STOPS[index];
   const isLastStop = index === STOPS.length - 1;
 
+  window.clearTimeout(postaArrivalTimer);
+  impactedPostas.delete(index);
   resetFreeFlightInput();
   freeFlightControls.hidden = true;
   freeModeBtn.hidden = !isLastStop;
@@ -516,6 +587,7 @@ function previewStop(index) {
     duration: 1800,
     essential: false
   });
+  schedulePostaImpact(index, 900);
   map.triggerRepaint();
 }
 
@@ -818,6 +890,7 @@ function stopAtPost(index) {
   cancelAnimation();
   flightState = 'stopped';
   planeState = { ...planeState, throttle: 0.28, bank: 0, pitch: 0 };
+  triggerPostaImpact(index);
   setFlightButton('CONTINUAR');
   setStatus(`Posta ${index + 1} · hacé click en el cartel para ver los materiales`);
   map.triggerRepaint();
@@ -830,6 +903,7 @@ function completeFlight() {
   setFlightButton('VOLVER A VOLAR');
   setStatus('Recorrido completo · José L. Suárez');
   freeModeBtn.hidden = false;
+  triggerPostaImpact(STOPS.length - 1);
   triggerCelebration();
   map.easeTo({ zoom: 14.7, pitch: 62, duration: 2500, essential: false });
 }
@@ -1093,12 +1167,19 @@ function start() {
   }
   if (flightState === 'material') return;
   if (flightState === 'completed' || segment >= STOPS.length - 1) reset(false);
+  if (flightState === 'ready' && segment === 0 && !impactedPostas.has(0)) {
+    triggerPostaImpact(0);
+  }
   resumeFlight(true);
 }
 
 function reset(animateMap = true) {
   cancelAnimation();
   cancelCelebration();
+  cancelPostaImpact();
+  impactedPostas.clear();
+  airshipImpactStartedAt = -Infinity;
+  document.documentElement.dataset.airshipImpact = 'idle';
   resetFreeFlightInput();
   freeModeBtn.hidden = true;
   freeFlightControls.hidden = true;
@@ -1441,8 +1522,120 @@ map.on('load', () => {
   LANDMARKS.forEach(landmark => {
     map.addLayer(makeLandmarkLayer(landmark), firstLabel?.id);
   });
+  map.addLayer(makePostaNumbersLayer());
   map.addLayer(makeAirshipLayer());
 });
+
+const DIGIT_SEGMENTS = Object.freeze({
+  1: ['b', 'c'],
+  2: ['a', 'b', 'g', 'e', 'd'],
+  3: ['a', 'b', 'g', 'c', 'd'],
+  4: ['f', 'g', 'b', 'c'],
+  5: ['a', 'f', 'g', 'c', 'd'],
+  6: ['a', 'f', 'g', 'e', 'c', 'd'],
+  7: ['a', 'b', 'c'],
+  8: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+  9: ['a', 'b', 'c', 'd', 'f', 'g']
+});
+
+function createPostaDigit(number, color) {
+  const group = new THREE.Group();
+  const material = new THREE.MeshStandardMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity: 0.48,
+    metalness: 0.42,
+    roughness: 0.24
+  });
+  const segmentTransforms = {
+    a: [0, 0, 10, 10, 2.4, 2],
+    b: [5, 0, 5, 2, 2.4, 9],
+    c: [5, 0, -5, 2, 2.4, 9],
+    d: [0, 0, -10, 10, 2.4, 2],
+    e: [-5, 0, -5, 2, 2.4, 9],
+    f: [-5, 0, 5, 2, 2.4, 9],
+    g: [0, 0, 0, 10, 2.4, 2]
+  };
+
+  DIGIT_SEGMENTS[number].forEach(segmentName => {
+    const [x, y, z, width, depth, height] = segmentTransforms[segmentName];
+    const segment = new THREE.Mesh(
+      new THREE.BoxGeometry(width, depth, height),
+      material.clone()
+    );
+    segment.position.set(x, y, z);
+    segment.castShadow = true;
+    segment.frustumCulled = false;
+    group.add(segment);
+  });
+
+  const halo = new THREE.Mesh(
+    new THREE.TorusGeometry(8.2, 0.65, 10, 32),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.52, depthWrite: false })
+  );
+  halo.position.z = -12;
+  halo.frustumCulled = false;
+  group.add(halo);
+  return group;
+}
+
+function makePostaNumbersLayer() {
+  let renderer;
+  let scene;
+  let camera;
+  let numberGroups = [];
+
+  return {
+    id: 'postas-numeros-3d',
+    type: 'custom',
+    renderingMode: '3d',
+    onAdd(layerMap, gl) {
+      camera = new THREE.Camera();
+      scene = new THREE.Scene();
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x17313b, 2.7));
+      const light = new THREE.DirectionalLight(0xffffff, 3.1);
+      light.position.set(-20, -30, 60);
+      scene.add(light);
+      numberGroups = STOPS.map((stop, index) => {
+        const group = createPostaDigit(stop.id, POSTA_COLORS[index]);
+        group.userData.postaIndex = index;
+        scene.add(group);
+        return group;
+      });
+      renderer = new THREE.WebGLRenderer({
+        canvas: layerMap.getCanvas(),
+        context: gl,
+        antialias: true
+      });
+      renderer.autoClear = false;
+      document.documentElement.dataset.postaNumbers3d = 'ready';
+      layerMap.triggerRepaint();
+    },
+    render(gl, args) {
+      const now = performance.now();
+      const projection = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
+      const faceCamera = -map.getBearing() * Math.PI / 180;
+      numberGroups.forEach((group, index) => {
+        group.visible = !impactedPostas.has(index) && flightState !== 'free';
+        if (!group.visible) return;
+        const stop = STOPS[index];
+        const floatingAltitude = stop.alt + 36 + Math.sin(now / 520 + index * 0.9) * 4.5;
+        const coordinate = maplibregl.MercatorCoordinate.fromLngLat(
+          [stop.lng, stop.lat],
+          floatingAltitude
+        );
+        const units = coordinate.meterInMercatorCoordinateUnits();
+        group.position.set(coordinate.x, coordinate.y, coordinate.z);
+        group.scale.setScalar(units * 2.25);
+        group.rotation.z = faceCamera + Math.sin(now / 1100 + index) * 0.06;
+      });
+      camera.projectionMatrix.copy(projection);
+      renderer.resetState();
+      renderer.render(scene, camera);
+      map.triggerRepaint();
+    }
+  };
+}
 
 function makeLandmarkLayer(config) {
   let renderer;
@@ -1813,7 +2006,13 @@ function makeAirshipLayer() {
     },
     render(gl, args) {
       if (!airship) return;
-      airship.scale.setScalar(airshipScale * (planeState.scale ?? 1));
+      const impactElapsed = performance.now() - airshipImpactStartedAt;
+      const impactActive = impactElapsed >= 0 && impactElapsed < 680;
+      const impactPulse = impactActive
+        ? 1 + Math.sin(Math.min(1, impactElapsed / 360) * Math.PI) * 0.3
+        : 1;
+      airship.visible = !impactActive || impactElapsed > 390 || Math.floor(impactElapsed / 58) % 2 === 0;
+      airship.scale.setScalar(airshipScale * (planeState.scale ?? 1) * impactPulse);
       const cameraSide = Math.sin(cameraOrbit.azimuth * Math.PI / 180);
       const advertisingSides = airship.userData.advertisingSides ?? [];
       if (advertisingSides.length === 2) {
