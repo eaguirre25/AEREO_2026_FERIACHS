@@ -15,6 +15,7 @@ const FLIGHT_SPEED_MULTIPLIER = 1.56;
 const INITIAL_LEG_SPEED_MULTIPLIER = 1.6;
 const PROPELLER_SPIN_MULTIPLIER = 1.9;
 const FREE_FLIGHT_SPEEDS_KMH = [20, 40, 60, 90, 120];
+const FREE_FLIGHT_MAP_SPEED_MULTIPLIER = 4.5;
 const FREE_FLIGHT_TURN_DEGREES_PER_SECOND = 72;
 const TRAIL_MAX_POINTS = 42;
 const TRAIL_SAMPLE_MS = 140;
@@ -869,6 +870,7 @@ function animateFreeFlight(now) {
   ) % 360;
   const distanceMeters = thrust
     * (FREE_FLIGHT_SPEEDS_KMH[freeFlightSpeedIndex] / 3.6)
+    * FREE_FLIGHT_MAP_SPEED_MULTIPLIER
     * elapsedSeconds;
   const radians = nextBearing * Math.PI / 180;
   const northMeters = Math.cos(radians) * distanceMeters;
@@ -885,7 +887,9 @@ function animateFreeFlight(now) {
     bank: -turn * 6,
     pitch: thrust * 1.5,
     scale: 1,
-    throttle: 0.58 + Math.abs(thrust) * 0.35
+    throttle: 0.5 + Math.abs(thrust) * (
+      0.28 + 0.22 * freeFlightSpeedIndex / (FREE_FLIGHT_SPEEDS_KMH.length - 1)
+    )
   };
   setAltitude(planeState.alt);
   recordTrail(planeState, now);

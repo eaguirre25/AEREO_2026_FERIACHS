@@ -223,6 +223,8 @@ test('el final habilita vuelo libre con teclado, control táctil y selector de v
   assert.match(source, /function enterFreeFlight\(\)/);
   assert.match(source, /function animateFreeFlight\(now\)/);
   assert.match(source, /FREE_FLIGHT_SPEEDS_KMH = \[20, 40, 60, 90, 120\]/);
+  assert.match(source, /FREE_FLIGHT_MAP_SPEED_MULTIPLIER = 4\.5/);
+  assert.match(source, /FREE_FLIGHT_MAP_SPEED_MULTIPLIER\s*\n\s*\* elapsedSeconds/);
   assert.match(source, /new Set\(\['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'\]\)/);
   assert.match(source, /freeJoystick\.addEventListener\('pointerdown'/);
   assert.match(styles, /\.free-joystick[\s\S]*border-radius: 50%/);
