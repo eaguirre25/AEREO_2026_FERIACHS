@@ -220,6 +220,7 @@ test('el final habilita vuelo libre con teclado, control táctil y selector de v
   assert.match(html, /id="freeSlowerBtn"/);
   assert.match(html, /id="freeFasterBtn"/);
   assert.match(source, /function completeFlight\(\)[\s\S]*freeModeBtn\.hidden = false/);
+  assert.match(source, /function previewStop\(index\)[\s\S]*freeModeBtn\.hidden = !isLastStop/);
   assert.match(source, /function enterFreeFlight\(\)/);
   assert.match(source, /function animateFreeFlight\(now\)/);
   assert.match(source, /FREE_FLIGHT_SPEEDS_KMH = \[20, 40, 60, 90, 120\]/);

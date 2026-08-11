@@ -470,6 +470,11 @@ function previewStop(index) {
   const stop = STOPS[index];
   const isLastStop = index === STOPS.length - 1;
 
+  resetFreeFlightInput();
+  freeFlightControls.hidden = true;
+  freeModeBtn.hidden = !isLastStop;
+  document.documentElement.dataset.flightMode = 'route';
+
   flightState = isLastStop ? 'completed' : index === 0 ? 'ready' : 'stopped';
   flightStage = index === 0 ? 'departure' : 'route';
   departurePhase = 0;
