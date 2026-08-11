@@ -188,7 +188,7 @@ test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async ()
   assert.match(source, /function stopAtPost\(index\)/);
   assert.match(source, /materialReturnState === 'stopped'/);
   assert.match(source, /resumeFlight\(true\)/);
-  assert.match(source, /FLIGHT_SPEED_MULTIPLIER = 1\.1/);
+  assert.match(source, /FLIGHT_SPEED_MULTIPLIER = 1\.3/);
   assert.match(source, /INITIAL_LEG_SPEED_MULTIPLIER = 1\.6/);
   assert.match(source, /initialLeg = flightStage === 'departure' \|\| segment === 0/);
   assert.match(source, /function stopAtPost\(index\)[\s\S]*throttle: 0\.28/);
@@ -272,6 +272,9 @@ test('el dirigible lleva publicidad en ambos laterales y admite cámara orbital'
   assert.ok(texture.length > 100_000 && texture.length < 1_000_000);
   assert.match(source, /function attachAdvertising\(model, orientation = 'gltf'\)/);
   assert.match(source, /group\.add\(sideA, sideB\)/);
+  assert.match(source, /function curvedAdvertisingGeometry\(/);
+  assert.match(source, /new THREE\.PlaneGeometry\(width, height, 28, 10\)/);
+  assert.match(source, /dataset\.airshipAdvertisingShape = 'curved'/);
   assert.match(source, /ciencia-y-ficcion\.webp/);
   assert.match(source, /dataset\.airshipAdvertising = 'ciencia-y-ficcion'/);
   assert.match(source, /dragPan: false/);
