@@ -11,7 +11,7 @@ import {
 } from './route.js';
 
 const AIRSHIP_BASE_SCALE = 16.8;
-const FLIGHT_SPEED_MULTIPLIER = 1.1;
+const FLIGHT_SPEED_MULTIPLIER = 1.3;
 const INITIAL_LEG_SPEED_MULTIPLIER = 1.6;
 const TRAIL_MAX_POINTS = 42;
 const TRAIL_SAMPLE_MS = 140;
@@ -1346,6 +1346,44 @@ function makeAirshipLayer() {
   let advertisingTexture = null;
   const airshipScale = AIRSHIP_BASE_SCALE;
 
+  function curvedAdvertisingGeometry(side, orientation, size, center, width, height, verticalCenter) {
+    const geometry = new THREE.PlaneGeometry(width, height, 28, 10);
+    const position = geometry.attributes.position;
+    const uv = geometry.attributes.uv;
+    const verticalRadius = Math.max(
+      (orientation === 'gltf' ? size.y : size.z) * 0.5,
+      height * 0.8
+    );
+    const lengthRadius = Math.max(size.x * 0.5, width * 0.6);
+    const sideRadius = (orientation === 'gltf' ? size.z : size.y) * 0.5;
+    const verticalOrigin = orientation === 'gltf' ? center.y : center.z;
+
+    for (let index = 0; index < position.count; index += 1) {
+      const localX = position.getX(index);
+      const localVertical = position.getY(index);
+      const normalizedX = localX / lengthRadius;
+      const normalizedVertical = (verticalCenter + localVertical - verticalOrigin) / verticalRadius;
+      const envelopeFactor = Math.sqrt(Math.max(
+        0.06,
+        1 - normalizedX * normalizedX - normalizedVertical * normalizedVertical
+      ));
+      const surfaceOffset = side * (sideRadius * envelopeFactor + 0.025);
+
+      if (orientation === 'gltf') {
+        position.setXYZ(index, localX, localVertical, surfaceOffset);
+        if (side < 0) uv.setX(index, 1 - uv.getX(index));
+      } else {
+        position.setXYZ(index, localX, surfaceOffset, localVertical);
+      }
+    }
+
+    position.needsUpdate = true;
+    uv.needsUpdate = true;
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    return geometry;
+  }
+
   function attachAdvertising(model, orientation = 'gltf') {
     if (!model || !advertisingTexture) return;
     const previous = model.getObjectByName('publicidad-ciencia-y-ficcion');
@@ -1377,33 +1415,34 @@ function makeAirshipLayer() {
       height = maxHeight;
       width = height * aspect;
     }
+    const verticalCenter = orientation === 'gltf'
+      ? center.y + size.y * 0.22
+      : center.z + size.z * 0.18;
 
     const group = new THREE.Group();
     group.name = 'publicidad-ciencia-y-ficcion';
-    const geometry = new THREE.PlaneGeometry(width, height);
     const material = new THREE.MeshBasicMaterial({
       map: advertisingTexture,
       side: THREE.DoubleSide,
       toneMapped: false
     });
-    const sideA = new THREE.Mesh(geometry, material);
-    const sideB = new THREE.Mesh(geometry, material.clone());
+    const sideA = new THREE.Mesh(
+      curvedAdvertisingGeometry(1, orientation, size, center, width, height, verticalCenter),
+      material
+    );
+    const sideB = new THREE.Mesh(
+      curvedAdvertisingGeometry(-1, orientation, size, center, width, height, verticalCenter),
+      material.clone()
+    );
     sideA.renderOrder = 4;
     sideB.renderOrder = 4;
 
     if (orientation === 'gltf') {
-      const offset = size.z * 0.5 + 0.02;
-      const verticalCenter = center.y + size.y * 0.22;
-      sideA.position.set(center.x, verticalCenter, center.z + offset);
-      sideB.position.set(center.x, verticalCenter, center.z - offset);
-      sideB.rotation.y = Math.PI;
+      sideA.position.set(center.x, verticalCenter, center.z);
+      sideB.position.set(center.x, verticalCenter, center.z);
     } else {
-      const offset = size.y * 0.5 + 0.02;
-      const verticalCenter = center.z + size.z * 0.18;
-      sideA.position.set(center.x, center.y + offset, verticalCenter);
-      sideB.position.set(center.x, center.y - offset, verticalCenter);
-      sideA.rotation.x = -Math.PI / 2;
-      sideB.rotation.x = Math.PI / 2;
+      sideA.position.set(center.x, center.y, verticalCenter);
+      sideB.position.set(center.x, center.y, verticalCenter);
     }
 
     group.add(sideA, sideB);
@@ -1411,6 +1450,7 @@ function makeAirshipLayer() {
     model.userData.advertisingSides = [sideA, sideB];
     model.updateMatrixWorld(true);
     document.documentElement.dataset.airshipAdvertising = 'ciencia-y-ficcion';
+    document.documentElement.dataset.airshipAdvertisingShape = 'curved';
     map.triggerRepaint();
   }
 
