@@ -92,6 +92,23 @@
       <strong>¡RECORRIDO COMPLETADO!</strong>
     </div>
   </div>
+  <button id="freeModeBtn" class="free-mode-entry" type="button" hidden>ZEPELÍN: MODO LIBRE</button>
+  <section id="freeFlightControls" class="free-flight-controls" aria-label="Controles del modo libre" hidden>
+    <div class="free-flight-heading">
+      <strong>ZEPELÍN · MODO LIBRE</strong>
+      <span class="desktop-flight-help">FLECHAS: AVANZAR, RETROCEDER Y GIRAR</span>
+      <span class="mobile-flight-help">MOVÉ EL CONTROL CIRCULAR PARA PILOTEAR</span>
+    </div>
+    <div id="freeJoystick" class="free-joystick" role="application" aria-label="Control táctil del zepelín">
+      <div id="freeJoystickKnob" class="free-joystick-knob"></div>
+    </div>
+    <div class="free-speed-control" aria-label="Velocidad del zepelín">
+      <button id="freeSlowerBtn" type="button" aria-label="Reducir velocidad">−</button>
+      <output id="freeSpeedOutput">60 KM/H</output>
+      <button id="freeFasterBtn" type="button" aria-label="Aumentar velocidad">+</button>
+    </div>
+    <button id="exitFreeModeBtn" class="exit-free-mode" type="button">SALIR DEL MODO LIBRE</button>
+  </section>
   <div id="materialOverlay" class="material-overlay" role="dialog" aria-modal="true" aria-labelledby="materialTitle" aria-hidden="true">
     <section class="material-panel">
       <button id="closeMaterialBtn" class="material-close" type="button">✕ CERRAR Y CONTINUAR</button>
@@ -112,6 +129,6 @@
       }
     }
   </script>
-  <script type="module" src="app.js?v=17"></script>
+  <script type="module" src="app.js?v=18"></script>
 </body>
 </html>
