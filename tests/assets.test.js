@@ -200,7 +200,7 @@ test('la portada permite elegir dispositivo y adapta los controles al celular', 
   assert.match(styles, /\.fullscreen-control \{[\s\S]*?width: 70px;[\s\S]*?min-height: 34px;/);
 });
 
-test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async () => {
+test('cada posta abre un panel y las Postas 1 y 2 conservan sus placas', async () => {
   const [source, html] = await Promise.all([
     readFile(new URL('../app.js', import.meta.url), 'utf8'),
     readFile(new URL('../index.html', import.meta.url), 'utf8')
@@ -217,6 +217,17 @@ test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async ()
   assert.match(source, /function stopAtPost\(index\)[\s\S]*throttle: 0\.28/);
   assert.match(source, /fans\.forEach\(fan => \{[\s\S]*fan\.rotation/);
   assert.match(source, /empty\.className = 'empty-material'/);
+  assert.match(source, /POSTA_SLIDES = new Map/);
+  assert.match(source, /touchstart/);
+  assert.match(source, /touchend/);
+
+  for (let index = 1; index <= 2; index += 1) {
+    const file = await stat(new URL(
+      `../assets/materials/posta-1/slide-${String(index).padStart(2, '0')}.webp`,
+      import.meta.url
+    ));
+    assert.ok(file.size > 50_000, `la placa ${index} de Posta 1 no puede estar vacía`);
+  }
 
   for (let index = 1; index <= 7; index += 1) {
     const file = await stat(new URL(
@@ -227,6 +238,8 @@ test('cada posta abre un panel y la Posta 2 conserva sus siete placas', async ()
   }
   const sourceNote = await stat(new URL('../assets/materials/posta-2/SOURCE.md', import.meta.url));
   assert.ok(sourceNote.size > 0);
+  const posta1SourceNote = await stat(new URL('../assets/materials/posta-1/SOURCE.md', import.meta.url));
+  assert.ok(posta1SourceNote.size > 0);
 });
 
 test('el final habilita vuelo libre con teclado, control táctil y selector de velocidad', async () => {

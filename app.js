@@ -24,10 +24,18 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
 const CAMERA_ORBIT_DEFAULT = Object.freeze({ azimuth: 6, pitchOffset: 0, zoomOffset: 0 });
+const POSTA_1_SLIDES = Array.from(
+  { length: 2 },
+  (_, index) => `./assets/materials/posta-1/slide-${String(index + 1).padStart(2, '0')}.webp`
+);
 const POSTA_2_SLIDES = Array.from(
   { length: 7 },
   (_, index) => `./assets/materials/posta-2/slide-${String(index + 1).padStart(2, '0')}.webp`
 );
+const POSTA_SLIDES = new Map([
+  [0, POSTA_1_SLIDES],
+  [1, POSTA_2_SLIDES]
+]);
 const LOCALITY_COLORS = [
   '#e53935',
   '#f4d03f',
@@ -436,7 +444,9 @@ function setFlightButton(label, pressed = false) {
   startBtn.setAttribute('aria-pressed', String(pressed));
 }
 
-function renderPosta2Slide() {
+function renderPostaSlide() {
+  const slides = POSTA_SLIDES.get(currentStopIndex);
+  if (!slides?.length) return;
   materialBody.replaceChildren();
   const viewer = document.createElement('div');
   const stage = document.createElement('div');
@@ -457,19 +467,29 @@ function renderPosta2Slide() {
   previous.setAttribute('aria-label', 'Placa anterior');
   next.setAttribute('aria-label', 'Placa siguiente');
   previous.disabled = materialSlideIndex === 0;
-  next.disabled = materialSlideIndex === POSTA_2_SLIDES.length - 1;
-  image.src = POSTA_2_SLIDES[materialSlideIndex];
-  image.alt = `Material de la Posta 2, placa ${materialSlideIndex + 1} de ${POSTA_2_SLIDES.length}`;
-  counter.textContent = `${materialSlideIndex + 1} / ${POSTA_2_SLIDES.length}`;
+  next.disabled = materialSlideIndex === slides.length - 1;
+  image.src = slides[materialSlideIndex];
+  image.alt = `Material de la Posta ${currentStopIndex + 1}, placa ${materialSlideIndex + 1} de ${slides.length}`;
+  counter.textContent = `${materialSlideIndex + 1} / ${slides.length}`;
 
   previous.addEventListener('click', () => {
     materialSlideIndex = Math.max(0, materialSlideIndex - 1);
-    renderPosta2Slide();
+    renderPostaSlide();
   });
   next.addEventListener('click', () => {
-    materialSlideIndex = Math.min(POSTA_2_SLIDES.length - 1, materialSlideIndex + 1);
-    renderPosta2Slide();
+    materialSlideIndex = Math.min(slides.length - 1, materialSlideIndex + 1);
+    renderPostaSlide();
   });
+  let touchStartX = null;
+  stage.addEventListener('touchstart', event => {
+    touchStartX = event.changedTouches[0]?.clientX ?? null;
+  }, { passive: true });
+  stage.addEventListener('touchend', event => {
+    if (touchStartX === null) return;
+    const deltaX = (event.changedTouches[0]?.clientX ?? touchStartX) - touchStartX;
+    touchStartX = null;
+    if (Math.abs(deltaX) >= 48) stepMaterialSlide(deltaX < 0 ? 1 : -1);
+  }, { passive: true });
   stage.append(previous, image, next);
   viewer.append(stage, counter);
   materialBody.appendChild(viewer);
@@ -478,9 +498,9 @@ function renderPosta2Slide() {
 function renderMaterial(index) {
   const stop = STOPS[index];
   materialTitle.textContent = `POSTA ${stop.id} · ${stop.title}`;
-  if (index === 1) {
+  if (POSTA_SLIDES.has(index)) {
     materialSlideIndex = 0;
-    renderPosta2Slide();
+    renderPostaSlide();
     return;
   }
   const empty = document.createElement('div');
@@ -526,12 +546,13 @@ function closeMaterial() {
 }
 
 function stepMaterialSlide(direction) {
-  if (currentStopIndex !== 1 || !materialOverlay.classList.contains('open')) return;
+  const slides = POSTA_SLIDES.get(currentStopIndex);
+  if (!slides?.length || !materialOverlay.classList.contains('open')) return;
   materialSlideIndex = Math.max(
     0,
-    Math.min(POSTA_2_SLIDES.length - 1, materialSlideIndex + direction)
+    Math.min(slides.length - 1, materialSlideIndex + direction)
   );
-  renderPosta2Slide();
+  renderPostaSlide();
 }
 
 function previewStop(index) {
