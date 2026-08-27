@@ -64,6 +64,13 @@ test('las etapas 6 y 7 se presentan como Paradas A y B', () => {
   assert.equal(STOPS[6].markerLabel, 'B');
 });
 
+test('las dos etapas finales se presentan como Postas 6 y 7', () => {
+  assert.equal(STOPS[7].stageLabel, 'POSTA 6');
+  assert.equal(STOPS[7].markerLabel, '6');
+  assert.equal(STOPS[8].stageLabel, 'POSTA 7');
+  assert.equal(STOPS[8].markerLabel, '7');
+});
+
 test('la posta de Billinghurst cae dentro de Villa Billinghurst', () => {
   const billinghurst = STOPS.find(stop => stop.name.includes('Billinghurst'));
   assert.ok(billinghurst);
@@ -116,7 +123,7 @@ test('las postas muestran nombres de localidades verificadas', () => {
   assert.equal(STOPS[0].place, 'Campus Miguelete');
 });
 
-test('las postas conservan los títulos temáticos del recorrido original', () => {
+test('las etapas usan los títulos de sus materiales', () => {
   assert.deepEqual(STOPS.map(stop => stop.title), [
     'Punto de partida',
     'Mirador: afinar lo que vemos',
@@ -125,7 +132,7 @@ test('las postas conservan los títulos temáticos del recorrido original', () =
     'Objetivos',
     'Hipótesis',
     'Antecedentes',
-    'Equipaje metodológico',
+    'Metodología',
     'Conclusiones'
   ]);
 });

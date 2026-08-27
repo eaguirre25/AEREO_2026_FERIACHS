@@ -272,6 +272,17 @@ test('cada posta abre un panel y las Postas 1 a 5 conservan sus placas', async (
     const sourceNote = await stat(new URL(`../assets/materials/parada-${parada}/SOURCE.md`, import.meta.url));
     assert.ok(sourceNote.size > 0);
   }
+  for (const [posta, count] of [[6, 4], [7, 2]]) {
+    for (let index = 1; index <= count; index += 1) {
+      const file = await stat(new URL(
+        `../assets/materials/posta-${posta}/slide-${String(index).padStart(2, '0')}.webp`,
+        import.meta.url
+      ));
+      assert.ok(file.size > 50_000, `la placa ${index} de Posta ${posta} no puede estar vacía`);
+    }
+    const sourceNote = await stat(new URL(`../assets/materials/posta-${posta}/SOURCE.md`, import.meta.url));
+    assert.ok(sourceNote.size > 0);
+  }
 });
 
 test('el final habilita vuelo libre con teclado, control táctil y selector de velocidad', async () => {
@@ -309,7 +320,7 @@ test('el HUD muestra el título temático y la cuenta regresiva sin revelar la f
   assert.match(html, /id="countdownMinutes"/);
   assert.match(html, /PARA OCTUBRE/);
   assert.match(html, /assets\/ui\/el-camino-investigacion\.png/);
-  assert.match(source, /2026-10-15T00:00:00-03:00/);
+  assert.match(source, /2026-10-15T08:00:00-03:00/);
   assert.match(source, /Math\.floor\(remaining \/ DAY_MS\)/);
   assert.match(source, /stopTheme\.textContent = stop\.title\.toUpperCase\(\)/);
   assert.match(source, /materialTitle\.textContent = `\$\{stopLabel\(stop\)\} · \$\{stop\.title\.toUpperCase\(\)\}`/);
@@ -332,7 +343,9 @@ test('la experiencia inicia en mapa vectorial y ofrece el cambio a satélite', a
     readFile(new URL('../app.js', import.meta.url), 'utf8'),
     readFile(new URL('../index.html', import.meta.url), 'utf8')
   ]);
-  assert.match(html, /id="stopMeta">UNSAM · CAMPUS MIGUELETE</);
+  assert.match(html, /id="stopMeta" hidden/);
+  assert.match(source, /stopMeta\.textContent = ''/);
+  assert.match(source, /'visibility': 'none',[\s\S]*'text-field': \['get', 'Localidad'\]/);
   assert.doesNotMatch(html, /VILLA MAIPÚ \/ VILLA LYNCH/);
   assert.match(html, /id="mapModeBtn"[^>]*aria-pressed="false"[^>]*>SATÉLITE</);
   assert.match(source, /let satelliteEnabled = false/);

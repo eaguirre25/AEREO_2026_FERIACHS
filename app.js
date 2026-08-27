@@ -19,7 +19,7 @@ const FREE_FLIGHT_MAP_SPEED_MULTIPLIER = 4.5;
 const FREE_FLIGHT_TURN_DEGREES_PER_SECOND = 72;
 const TRAIL_MAX_POINTS = 42;
 const TRAIL_SAMPLE_MS = 140;
-const FAIR_TARGET_TIMESTAMP = Date.parse('2026-10-15T00:00:00-03:00');
+const FAIR_TARGET_TIMESTAMP = Date.parse('2026-10-15T08:00:00-03:00');
 const DAY_MS = 24 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
@@ -52,6 +52,14 @@ const PARADA_B_SLIDES = Array.from(
   { length: 3 },
   (_, index) => `./assets/materials/parada-b/slide-${String(index + 1).padStart(2, '0')}.webp`
 );
+const POSTA_6_SLIDES = Array.from(
+  { length: 4 },
+  (_, index) => `./assets/materials/posta-6/slide-${String(index + 1).padStart(2, '0')}.webp`
+);
+const POSTA_7_SLIDES = Array.from(
+  { length: 2 },
+  (_, index) => `./assets/materials/posta-7/slide-${String(index + 1).padStart(2, '0')}.webp`
+);
 const POSTA_SLIDES = new Map([
   [0, POSTA_1_SLIDES],
   [1, POSTA_2_SLIDES],
@@ -59,11 +67,13 @@ const POSTA_SLIDES = new Map([
   [3, POSTA_4_SLIDES],
   [4, POSTA_5_SLIDES],
   [5, PARADA_A_SLIDES],
-  [6, PARADA_B_SLIDES]
+  [6, PARADA_B_SLIDES],
+  [7, POSTA_6_SLIDES],
+  [8, POSTA_7_SLIDES]
 ]);
 const stopLabel = stop => stop.stageLabel || `POSTA ${stop.id}`;
 const stopSpokenLabel = stop => stop.stageLabel
-  ? stop.stageLabel.replace('PARADA', 'Parada')
+  ? stop.stageLabel.replace('PARADA', 'Parada').replace('POSTA', 'Posta')
   : `Posta ${stop.id}`;
 const LOCALITY_COLORS = [
   '#e53935',
@@ -199,13 +209,13 @@ let postaArrivalTimer = null;
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
   const title = document.createElement('span');
-  const locality = document.createElement('small');
+  const theme = document.createElement('small');
   button.type = 'button';
   title.textContent = stopLabel(stop);
-  locality.textContent = stop.name;
+  theme.textContent = stop.title;
   button.style.setProperty('--posta-color', POSTA_COLORS[index]);
-  button.append(title, locality);
-  button.setAttribute('aria-label', `${stopSpokenLabel(stop)}: ${stop.name}`);
+  button.append(title, theme);
+  button.setAttribute('aria-label', `${stopSpokenLabel(stop)}: ${stop.title}`);
   button.addEventListener('click', () => previewStop(index));
   nav.appendChild(button);
 });
@@ -218,8 +228,7 @@ function setStop(index) {
   const postaColor = POSTA_COLORS[index];
   stopName.textContent = stopLabel(stop);
   stopTheme.textContent = stop.title.toUpperCase();
-  const place = stop.place && stop.place !== stop.name ? ` · ${stop.place}` : '';
-  stopMeta.textContent = `${stop.name}${place}`.toUpperCase();
+  stopMeta.textContent = '';
   stopMaterialBtn.setAttribute('aria-label', `Abrir materiales de ${stopSpokenLabel(stop)}: ${stop.title}`);
   stopName.style.setProperty('--posta-color', postaColor);
   document.documentElement.style.setProperty('--active-posta-color', postaColor);
@@ -227,10 +236,10 @@ function setStop(index) {
   nextStopBtn.disabled = index === STOPS.length - 1;
   prevStopBtn.setAttribute('aria-label', index === 0
     ? 'Ya estás en la primera posta'
-    : `Retroceder a ${stopSpokenLabel(STOPS[index - 1])}: ${STOPS[index - 1].name}`);
+    : `Retroceder a ${stopSpokenLabel(STOPS[index - 1])}: ${STOPS[index - 1].title}`);
   nextStopBtn.setAttribute('aria-label', index === STOPS.length - 1
     ? 'Ya estás en la última posta'
-    : `Avanzar a ${stopSpokenLabel(STOPS[index + 1])}: ${STOPS[index + 1].name}`);
+    : `Avanzar a ${stopSpokenLabel(STOPS[index + 1])}: ${STOPS[index + 1].title}`);
   navButtons.forEach((button, buttonIndex) => {
     const active = buttonIndex === index;
     button.classList.toggle('active', active);
@@ -627,8 +636,8 @@ function previewStop(index) {
     ? 'VOLVER A VOLAR'
     : index === 0 ? 'INICIAR' : 'CONTINUAR');
   setStatus(isLastStop
-    ? 'Recorrido completo · José L. Suárez'
-    : index === 0 ? 'Dirigible listo para elevarse desde UNSAM' : `Vista previa · ${stop.name}`);
+    ? 'Recorrido completo · Conclusiones'
+    : index === 0 ? 'Dirigible listo para elevarse desde UNSAM' : `Vista previa · ${stop.title}`);
   if (isLastStop) triggerCelebration();
   else cancelCelebration();
 
@@ -1155,7 +1164,7 @@ function animate(now) {
       } else {
         flightStage = 'route';
         departurePhase = DEPARTURE_SECONDS.length - 1;
-        setStatus(`En ascenso · rumbo a ${STOPS[1].name}`);
+        setStatus(`En ascenso · rumbo a ${STOPS[1].title}`);
       }
       animationFrameId = requestAnimationFrame(animate);
       return;
@@ -1187,7 +1196,7 @@ function resumeFlight(fromStop = false) {
     ? departurePhase === 0
       ? 'Elevación suave desde UNSAM'
       : 'Avance inicial sobre Av. 25 de Mayo'
-    : `Rumbo a ${STOPS[segment + 1].name}`);
+    : `Rumbo a ${STOPS[segment + 1].title}`);
   cancelAnimation();
   animationFrameId = requestAnimationFrame(animate);
 }
@@ -1452,6 +1461,7 @@ map.on('load', () => {
     source: 'localidades-san-martin',
     minzoom: 11.5,
     layout: {
+      'visibility': 'none',
       'text-field': ['get', 'Localidad'],
       'text-size': ['interpolate', ['linear'], ['zoom'], 12, 11, 16, 15],
       'text-transform': 'uppercase',
