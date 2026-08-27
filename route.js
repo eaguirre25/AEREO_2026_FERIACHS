@@ -8,17 +8,16 @@ export const STOPS = [
   {id:7,name:'Billinghurst',title:'Antecedentes',stageLabel:'PARADA B',markerLabel:'B',label:'SOBREVUELO',place:'Villa Billinghurst',lng:-58.5747487,lat:-34.5752034,alt:120,zoom:15.8},
   {id:8,name:'Loma Hermosa',title:'Metodología',stageLabel:'POSTA 6',markerLabel:'6',label:'SOBREVUELO',lng:-58.5993659,lat:-34.5492367,alt:145,zoom:15.4},
   {id:9,name:'José L. Suárez',title:'Conclusiones',stageLabel:'POSTA 7',markerLabel:'7',lng:-58.58094506418298,lat:-34.52213589682376,alt:70,zoom:15.5}
-];
+].reverse();
 
-export const SEGMENT_SECONDS = [18,22,22,20,22,24,28,26];
+export const SEGMENT_SECONDS = [26,28,24,22,20,22,22,18];
 export const CRUISE_ALTITUDE = 45;
 
-// Salida desde la avenida 25 de Mayo frente al Campus Miguelete.
-// El avance inicial queda alineado con la Posta 2 para evitar un giro abrupto.
+// Salida desde la actual Posta 7, alineada con la Posta 6 para evitar un giro abrupto.
 export const DEPARTURE_PATH = [
-  {lng:-58.52685,lat:-34.57961,alt:14},
-  {lng:-58.52685,lat:-34.57961,alt:55},
-  {lng:-58.525895,lat:-34.582560,alt:90}
+  {lng:-58.58094506418298,lat:-34.52213589682376,alt:14},
+  {lng:-58.58094506418298,lat:-34.52213589682376,alt:70},
+  {lng:-58.586471315,lat:-34.530266315,alt:105}
 ];
 export const DEPARTURE_SECONDS = [7,10];
 

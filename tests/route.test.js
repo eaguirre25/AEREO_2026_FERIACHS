@@ -14,7 +14,7 @@ test('la ruta tiene una duración por cada tramo', () => {
   assert.equal(SEGMENT_SECONDS.length, STOPS.length - 1);
 });
 
-test('la elevación y salida del dirigible parten de UNSAM sin saltos', () => {
+test('la elevación y salida parten de la Posta 7 sin saltos', () => {
   assert.equal(DEPARTURE_PATH.length, DEPARTURE_SECONDS.length + 1);
   assert.ok(DEPARTURE_SECONDS.every(seconds => seconds >= 4 && seconds <= 12));
   assert.equal(DEPARTURE_PATH[0].lat, DEPARTURE_PATH[1].lat);
@@ -23,12 +23,12 @@ test('la elevación y salida del dirigible parten de UNSAM sin saltos', () => {
   assert.ok(DEPARTURE_PATH[2].alt > DEPARTURE_PATH[1].alt);
 
   DEPARTURE_PATH.forEach(point => {
-    assert.ok(point.lat >= -34.583 && point.lat <= -34.577);
-    assert.ok(point.lng >= -58.530 && point.lng <= -58.523);
+    assert.ok(point.lat >= -34.532 && point.lat <= -34.521);
+    assert.ok(point.lng >= -58.588 && point.lng <= -58.580);
   });
 });
 
-test('la salida queda alineada con la dirección de la Posta 2', () => {
+test('la salida queda alineada con la dirección de la Posta 6', () => {
   const bearing = (a, b) => {
     const deltaLng = (b.lng - a.lng) * Math.PI / 180;
     const latA = a.lat * Math.PI / 180;
@@ -46,7 +46,7 @@ test('la salida queda alineada con la dirección de la Posta 2', () => {
 
 test('las postas tienen identificadores y datos válidos', () => {
   STOPS.forEach((stop, index) => {
-    assert.equal(stop.id, index + 1);
+    assert.equal(stop.id, STOPS.length - index);
     assert.ok(stop.name.length > 0);
     assert.ok(stop.lat >= -34.65 && stop.lat <= -34.48);
     assert.ok(stop.lng >= -58.66 && stop.lng <= -58.48);
@@ -58,17 +58,17 @@ test('las postas tienen identificadores y datos válidos', () => {
 });
 
 test('las etapas 6 y 7 se presentan como Paradas A y B', () => {
-  assert.equal(STOPS[5].stageLabel, 'PARADA A');
-  assert.equal(STOPS[5].markerLabel, 'A');
-  assert.equal(STOPS[6].stageLabel, 'PARADA B');
-  assert.equal(STOPS[6].markerLabel, 'B');
+  const paradaA = STOPS.find(stop => stop.stageLabel === 'PARADA A');
+  const paradaB = STOPS.find(stop => stop.stageLabel === 'PARADA B');
+  assert.equal(paradaA.markerLabel, 'A');
+  assert.equal(paradaB.markerLabel, 'B');
 });
 
-test('las dos etapas finales se presentan como Postas 6 y 7', () => {
-  assert.equal(STOPS[7].stageLabel, 'POSTA 6');
-  assert.equal(STOPS[7].markerLabel, '6');
-  assert.equal(STOPS[8].stageLabel, 'POSTA 7');
-  assert.equal(STOPS[8].markerLabel, '7');
+test('las etapas metodológicas se presentan como Postas 6 y 7', () => {
+  const posta6 = STOPS.find(stop => stop.stageLabel === 'POSTA 6');
+  const posta7 = STOPS.find(stop => stop.stageLabel === 'POSTA 7');
+  assert.equal(posta6.markerLabel, '6');
+  assert.equal(posta7.markerLabel, '7');
 });
 
 test('la posta de Billinghurst cae dentro de Villa Billinghurst', () => {
@@ -104,35 +104,35 @@ test('el logo UNSAM gira sobre el Campus Miguelete', () => {
 
 test('las postas muestran nombres de localidades verificadas', () => {
   assert.deepEqual(
-    STOPS.slice(0, 8).map(stop => stop.name),
+    STOPS.map(stop => stop.name),
     [
-      'UNSAM',
-      'Villa Lynch',
-      'San Martín',
-      'Villa Maipú',
-      'San Andrés',
-      'Villa Ballester',
+      'José L. Suárez',
+      'Loma Hermosa',
       'Billinghurst',
-      'Loma Hermosa'
+      'Villa Ballester',
+      'San Andrés',
+      'Villa Maipú',
+      'San Martín',
+      'Villa Lynch',
+      'UNSAM'
     ]
   );
-  assert.equal(STOPS[8].name, 'José L. Suárez');
-  assert.equal(STOPS[8].lat, -34.52213589682376);
-  assert.equal(STOPS[8].lng, -58.58094506418298);
-  assert.equal(STOPS[8].place, undefined);
-  assert.equal(STOPS[0].place, 'Campus Miguelete');
+  assert.equal(STOPS[0].lat, -34.52213589682376);
+  assert.equal(STOPS[0].lng, -58.58094506418298);
+  assert.equal(STOPS[0].place, undefined);
+  assert.equal(STOPS[8].place, 'Campus Miguelete');
 });
 
 test('las etapas usan los títulos de sus materiales', () => {
   assert.deepEqual(STOPS.map(stop => stop.title), [
-    'Punto de partida',
-    'Mirador: afinar lo que vemos',
-    'Situación problemática',
-    'Pregunta de investigación',
-    'Objetivos',
-    'Hipótesis',
-    'Antecedentes',
+    'Conclusiones',
     'Metodología',
-    'Conclusiones'
+    'Antecedentes',
+    'Hipótesis',
+    'Objetivos',
+    'Pregunta de investigación',
+    'Situación problemática',
+    'Mirador: afinar lo que vemos',
+    'Punto de partida'
   ]);
 });

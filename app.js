@@ -61,15 +61,15 @@ const POSTA_7_SLIDES = Array.from(
   (_, index) => `./assets/materials/posta-7/slide-${String(index + 1).padStart(2, '0')}.webp`
 );
 const POSTA_SLIDES = new Map([
-  [0, POSTA_1_SLIDES],
-  [1, POSTA_2_SLIDES],
-  [2, POSTA_3_SLIDES],
-  [3, POSTA_4_SLIDES],
+  [0, POSTA_7_SLIDES],
+  [1, POSTA_6_SLIDES],
+  [2, PARADA_B_SLIDES],
+  [3, PARADA_A_SLIDES],
   [4, POSTA_5_SLIDES],
-  [5, PARADA_A_SLIDES],
-  [6, PARADA_B_SLIDES],
-  [7, POSTA_6_SLIDES],
-  [8, POSTA_7_SLIDES]
+  [5, POSTA_4_SLIDES],
+  [6, POSTA_3_SLIDES],
+  [7, POSTA_2_SLIDES],
+  [8, POSTA_1_SLIDES]
 ]);
 const stopLabel = stop => stop.stageLabel || `POSTA ${stop.id}`;
 const stopSpokenLabel = stop => stop.stageLabel
@@ -93,7 +93,7 @@ const POSTA_COLORS = [
   '#20c9b0',
   '#ff70b7',
   '#f4eee2'
-];
+].reverse();
 
 const initialPlaneState = () => ({
   lng: DEPARTURE_PATH[0].lng,
@@ -636,8 +636,8 @@ function previewStop(index) {
     ? 'VOLVER A VOLAR'
     : index === 0 ? 'INICIAR' : 'CONTINUAR');
   setStatus(isLastStop
-    ? 'Recorrido completo · Conclusiones'
-    : index === 0 ? 'Dirigible listo para elevarse desde UNSAM' : `Vista previa · ${stop.title}`);
+    ? 'Recorrido completo · Punto de partida'
+    : index === 0 ? `Dirigible listo para elevarse desde ${stop.title}` : `Vista previa · ${stop.title}`);
   if (isLastStop) triggerCelebration();
   else cancelCelebration();
 
@@ -1160,7 +1160,7 @@ function animate(now) {
       departurePhase += 1;
       segmentStart = now;
       if (departurePhase < DEPARTURE_SECONDS.length) {
-        setStatus('Avance inicial sobre Av. 25 de Mayo');
+        setStatus('Avance inicial desde la Posta 7');
       } else {
         flightStage = 'route';
         departurePhase = DEPARTURE_SECONDS.length - 1;
@@ -1194,8 +1194,8 @@ function resumeFlight(fromStop = false) {
   setFlightButton('PAUSA');
   setStatus(flightStage === 'departure'
     ? departurePhase === 0
-      ? 'Elevación suave desde UNSAM'
-      : 'Avance inicial sobre Av. 25 de Mayo'
+      ? 'Elevación suave desde la Posta 7'
+      : 'Avance inicial desde la Posta 7'
     : `Rumbo a ${STOPS[segment + 1].title}`);
   cancelAnimation();
   animationFrameId = requestAnimationFrame(animate);
