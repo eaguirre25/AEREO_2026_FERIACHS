@@ -44,13 +44,27 @@ const POSTA_5_SLIDES = Array.from(
   { length: 3 },
   (_, index) => `./assets/materials/posta-5/slide-${String(index + 1).padStart(2, '0')}.webp`
 );
+const PARADA_A_SLIDES = Array.from(
+  { length: 5 },
+  (_, index) => `./assets/materials/parada-a/slide-${String(index + 1).padStart(2, '0')}.webp`
+);
+const PARADA_B_SLIDES = Array.from(
+  { length: 3 },
+  (_, index) => `./assets/materials/parada-b/slide-${String(index + 1).padStart(2, '0')}.webp`
+);
 const POSTA_SLIDES = new Map([
   [0, POSTA_1_SLIDES],
   [1, POSTA_2_SLIDES],
   [2, POSTA_3_SLIDES],
   [3, POSTA_4_SLIDES],
-  [4, POSTA_5_SLIDES]
+  [4, POSTA_5_SLIDES],
+  [5, PARADA_A_SLIDES],
+  [6, PARADA_B_SLIDES]
 ]);
+const stopLabel = stop => stop.stageLabel || `POSTA ${stop.id}`;
+const stopSpokenLabel = stop => stop.stageLabel
+  ? stop.stageLabel.replace('PARADA', 'Parada')
+  : `Posta ${stop.id}`;
 const LOCALITY_COLORS = [
   '#e53935',
   '#f4d03f',
@@ -187,11 +201,11 @@ STOPS.forEach((stop, index) => {
   const title = document.createElement('span');
   const locality = document.createElement('small');
   button.type = 'button';
-  title.textContent = `POSTA ${stop.id}`;
+  title.textContent = stopLabel(stop);
   locality.textContent = stop.name;
   button.style.setProperty('--posta-color', POSTA_COLORS[index]);
   button.append(title, locality);
-  button.setAttribute('aria-label', `Posta ${index + 1}: ${stop.name}`);
+  button.setAttribute('aria-label', `${stopSpokenLabel(stop)}: ${stop.name}`);
   button.addEventListener('click', () => previewStop(index));
   nav.appendChild(button);
 });
@@ -202,21 +216,21 @@ function setStop(index) {
   const stop = STOPS[index];
   currentStopIndex = index;
   const postaColor = POSTA_COLORS[index];
-  stopName.textContent = `POSTA ${stop.id}`;
+  stopName.textContent = stopLabel(stop);
   stopTheme.textContent = stop.title.toUpperCase();
   const place = stop.place && stop.place !== stop.name ? ` · ${stop.place}` : '';
   stopMeta.textContent = `${stop.name}${place}`.toUpperCase();
-  stopMaterialBtn.setAttribute('aria-label', `Abrir materiales de la Posta ${stop.id}: ${stop.title}`);
+  stopMaterialBtn.setAttribute('aria-label', `Abrir materiales de ${stopSpokenLabel(stop)}: ${stop.title}`);
   stopName.style.setProperty('--posta-color', postaColor);
   document.documentElement.style.setProperty('--active-posta-color', postaColor);
   prevStopBtn.disabled = index === 0;
   nextStopBtn.disabled = index === STOPS.length - 1;
   prevStopBtn.setAttribute('aria-label', index === 0
     ? 'Ya estás en la primera posta'
-    : `Retroceder a Posta ${index}: ${STOPS[index - 1].name}`);
+    : `Retroceder a ${stopSpokenLabel(STOPS[index - 1])}: ${STOPS[index - 1].name}`);
   nextStopBtn.setAttribute('aria-label', index === STOPS.length - 1
     ? 'Ya estás en la última posta'
-    : `Avanzar a Posta ${index + 2}: ${STOPS[index + 1].name}`);
+    : `Avanzar a ${stopSpokenLabel(STOPS[index + 1])}: ${STOPS[index + 1].name}`);
   navButtons.forEach((button, buttonIndex) => {
     const active = buttonIndex === index;
     button.classList.toggle('active', active);
@@ -413,7 +427,7 @@ function triggerPostaImpact(index) {
 
   impactedPostas.add(index);
   airshipImpactStartedAt = performance.now();
-  postaImpactLabel.textContent = `POSTA ${stop.id}`;
+  postaImpactLabel.textContent = stopLabel(stop);
   postaImpact.style.setProperty('--impact-color', color);
   postaImpact.style.setProperty('--impact-x', `${originX}px`);
   postaImpact.style.setProperty('--impact-y', `${originY}px`);
@@ -484,7 +498,7 @@ function renderPostaSlide() {
   previous.disabled = materialSlideIndex === 0;
   next.disabled = materialSlideIndex === slides.length - 1;
   image.src = slides[materialSlideIndex];
-  image.alt = `Material de la Posta ${currentStopIndex + 1}, placa ${materialSlideIndex + 1} de ${slides.length}`;
+  image.alt = `Material de ${stopSpokenLabel(STOPS[currentStopIndex])}, placa ${materialSlideIndex + 1} de ${slides.length}`;
   counter.textContent = `${materialSlideIndex + 1} / ${slides.length}`;
 
   previous.addEventListener('click', () => {
@@ -512,7 +526,7 @@ function renderPostaSlide() {
 
 function renderMaterial(index) {
   const stop = STOPS[index];
-  materialTitle.textContent = `POSTA ${stop.id} · ${stop.title}`;
+  materialTitle.textContent = `${stopLabel(stop)} · ${stop.title.toUpperCase()}`;
   if (POSTA_SLIDES.has(index)) {
     materialSlideIndex = 0;
     renderPostaSlide();
@@ -520,7 +534,7 @@ function renderMaterial(index) {
   }
   const empty = document.createElement('div');
   empty.className = 'empty-material';
-  empty.setAttribute('aria-label', `Espacio reservado para los materiales de la Posta ${stop.id}`);
+  empty.setAttribute('aria-label', `Espacio reservado para los materiales de ${stopSpokenLabel(stop)}`);
   materialBody.replaceChildren(empty);
 }
 
@@ -928,7 +942,7 @@ function stopAtPost(index) {
   planeState = { ...planeState, throttle: 0.28, bank: 0, pitch: 0 };
   triggerPostaImpact(index);
   setFlightButton('CONTINUAR');
-  setStatus(`Posta ${index + 1} · hacé click en el cartel para ver los materiales`);
+  setStatus(`${stopSpokenLabel(STOPS[index])} · hacé click en el cartel para ver los materiales`);
   map.triggerRepaint();
 }
 
@@ -1571,7 +1585,9 @@ const DIGIT_SEGMENTS = Object.freeze({
   6: ['a', 'f', 'g', 'e', 'c', 'd'],
   7: ['a', 'b', 'c'],
   8: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
-  9: ['a', 'b', 'c', 'd', 'f', 'g']
+  9: ['a', 'b', 'c', 'd', 'f', 'g'],
+  A: ['a', 'b', 'c', 'e', 'f', 'g'],
+  B: ['c', 'd', 'e', 'f', 'g']
 });
 
 function createPostaDigit(number, color) {
@@ -1633,7 +1649,7 @@ function makePostaNumbersLayer() {
       light.position.set(-20, -30, 60);
       scene.add(light);
       numberGroups = STOPS.map((stop, index) => {
-        const group = createPostaDigit(stop.id, POSTA_COLORS[index]);
+        const group = createPostaDigit(stop.markerLabel || stop.id, POSTA_COLORS[index]);
         group.userData.postaIndex = index;
         scene.add(group);
         return group;

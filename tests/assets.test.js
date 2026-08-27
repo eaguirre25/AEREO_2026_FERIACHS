@@ -93,7 +93,7 @@ test('la escena duplica el dirigible y resalta la localidad activa', async () =>
   assert.match(source, /LOCALITY_COLORS/);
 });
 
-test('la interfaz permite avanzar y retroceder entre nueve postas coloreadas', async () => {
+test('la interfaz permite avanzar y retroceder entre nueve etapas coloreadas', async () => {
   const [source, html] = await Promise.all([
     readFile(new URL('../app.js', import.meta.url), 'utf8'),
     readFile(new URL('../index.html', import.meta.url), 'utf8')
@@ -103,7 +103,8 @@ test('la interfaz permite avanzar y retroceder entre nueve postas coloreadas', a
   assert.match(source, /const POSTA_COLORS = \[/);
   assert.match(source, /stepToStop\(-1\)/);
   assert.match(source, /stepToStop\(1\)/);
-  assert.match(source, /stopName\.textContent = `POSTA \$\{stop\.id\}`/);
+  assert.match(source, /stopName\.textContent = stopLabel\(stop\)/);
+  assert.match(source, /stop\.stageLabel \|\| `POSTA \$\{stop\.id\}`/);
 });
 
 test('las postas tienen números 3D, impacto y rótulo que vuela al cartel fijo', async () => {
@@ -260,6 +261,17 @@ test('cada posta abre un panel y las Postas 1 a 5 conservan sus placas', async (
     const sourceNote = await stat(new URL(`../assets/materials/posta-${posta}/SOURCE.md`, import.meta.url));
     assert.ok(sourceNote.size > 0);
   }
+  for (const [parada, count] of [['a', 5], ['b', 3]]) {
+    for (let index = 1; index <= count; index += 1) {
+      const file = await stat(new URL(
+        `../assets/materials/parada-${parada}/slide-${String(index).padStart(2, '0')}.webp`,
+        import.meta.url
+      ));
+      assert.ok(file.size > 50_000, `la placa ${index} de Parada ${parada.toUpperCase()} no puede estar vacía`);
+    }
+    const sourceNote = await stat(new URL(`../assets/materials/parada-${parada}/SOURCE.md`, import.meta.url));
+    assert.ok(sourceNote.size > 0);
+  }
 });
 
 test('el final habilita vuelo libre con teclado, control táctil y selector de velocidad', async () => {
@@ -300,7 +312,7 @@ test('el HUD muestra el título temático y la cuenta regresiva sin revelar la f
   assert.match(source, /2026-10-15T00:00:00-03:00/);
   assert.match(source, /Math\.floor\(remaining \/ DAY_MS\)/);
   assert.match(source, /stopTheme\.textContent = stop\.title\.toUpperCase\(\)/);
-  assert.match(source, /materialTitle\.textContent = `POSTA \$\{stop\.id\} · \$\{stop\.title\}`/);
+  assert.match(source, /materialTitle\.textContent = `\$\{stopLabel\(stop\)\} · \$\{stop\.title\.toUpperCase\(\)\}`/);
   assert.doesNotMatch(html, /15[\/-]10[\/-]2026|15 de octubre/i);
   const titleBadge = await stat(new URL('../assets/ui/el-camino-investigacion.png', import.meta.url));
   assert.ok(titleBadge.size > 100_000);

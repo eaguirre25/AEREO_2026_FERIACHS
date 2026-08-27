@@ -57,6 +57,13 @@ test('las postas tienen identificadores y datos válidos', () => {
   assert.ok(CRUISE_ALTITUDE > 0 && CRUISE_ALTITUDE <= 300);
 });
 
+test('las etapas 6 y 7 se presentan como Paradas A y B', () => {
+  assert.equal(STOPS[5].stageLabel, 'PARADA A');
+  assert.equal(STOPS[5].markerLabel, 'A');
+  assert.equal(STOPS[6].stageLabel, 'PARADA B');
+  assert.equal(STOPS[6].markerLabel, 'B');
+});
+
 test('la posta de Billinghurst cae dentro de Villa Billinghurst', () => {
   const billinghurst = STOPS.find(stop => stop.name.includes('Billinghurst'));
   assert.ok(billinghurst);
