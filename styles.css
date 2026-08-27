@@ -600,7 +600,8 @@ button:focus-visible {
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.13);
 }
 
-.fullscreen-control {
+.fullscreen-control,
+.choose-experience-control {
   border: 1px solid rgba(255, 255, 255, 0.32);
   border-radius: 14px;
   padding: 8px 12px;
@@ -611,6 +612,12 @@ button:focus-visible {
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
   cursor: pointer;
+}
+
+.choose-experience-control {
+  display: grid;
+  place-items: center;
+  text-decoration: none;
 }
 
 .fullscreen-control > span:first-child {

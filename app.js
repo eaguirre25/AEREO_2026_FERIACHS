@@ -146,6 +146,7 @@ const nextStopBtn = $('#nextStopBtn');
 const startBtn = $('#startBtn');
 const restartBtn = $('#restartBtn');
 const fullscreenBtn = $('#fullscreenBtn');
+const chooseExperienceBtn = $('#chooseExperienceBtn');
 const fullscreenLabel = $('#fullscreenLabel');
 const stopMaterialBtn = $('#stopMaterialBtn');
 const nav = $('#routeNav');
@@ -591,6 +592,18 @@ function stepMaterialSlide(direction) {
     Math.min(slides.length - 1, materialSlideIndex + direction)
   );
   renderPostaSlide();
+}
+
+function reopenExperienceSetup() {
+  reset(false);
+  journeyIntro.hidden = true;
+  journeyIntro.setAttribute('aria-hidden', 'true');
+  orientationPrompt.hidden = true;
+  modeChoice.hidden = false;
+  experienceSetup.hidden = false;
+  experienceSetup.setAttribute('aria-hidden', 'false');
+  delete document.documentElement.dataset.experienceMode;
+  window.requestAnimationFrame(() => mobileModeBtn.focus());
 }
 
 function previewStop(index) {
@@ -1260,7 +1273,7 @@ function reset(animateMap = true) {
   setStop(0);
   setAltitude(planeState.alt);
   setFlightButton('INICIAR');
-  setStatus('Dirigible listo para elevarse desde UNSAM');
+  setStatus('Dirigible listo para elevarse desde la Posta 1');
 
   const transition = {
     ...thirdPersonView(planeState),
@@ -1278,6 +1291,7 @@ prevStopBtn.addEventListener('click', () => stepToStop(-1));
 nextStopBtn.addEventListener('click', () => stepToStop(1));
 mapModeBtn.addEventListener('click', () => setMapMode(!satelliteEnabled));
 fullscreenBtn.addEventListener('click', toggleFullscreen);
+chooseExperienceBtn.addEventListener('click', reopenExperienceSetup);
 document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('fullscreenerror', () => {
   setStatus('No se pudo activar la pantalla completa.', true);
@@ -1333,7 +1347,7 @@ map.on('load', () => {
       .querySelector('.maplibregl-ctrl-attrib')
       ?.classList.remove('maplibregl-compact-show');
   }, 0);
-  setStatus('Dirigible listo para elevarse desde UNSAM');
+  setStatus('Dirigible listo para elevarse desde la Posta 1');
 
   const layers = map.getStyle().layers || [];
   vectorFillLayers = layers
@@ -2000,7 +2014,7 @@ function makeAirshipLayer() {
           attachAdvertising(loadedAirship, 'gltf');
           scene.add(airship);
           document.documentElement.dataset.airshipModel = 'zoomland';
-          if (flightState === 'ready') setStatus('Dirigible listo para elevarse desde UNSAM');
+          if (flightState === 'ready') setStatus('Dirigible listo para elevarse desde la Posta 1');
           dracoLoader.dispose();
           map.triggerRepaint();
         },

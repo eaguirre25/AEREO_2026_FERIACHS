@@ -164,6 +164,9 @@ test('los controles usan un único botón de vuelo y recuperan la esquina derech
   assert.match(html, /flight-controls[\s\S]*step-controls[\s\S]*utility-controls/);
   assert.match(html, /class="control-group utility-controls"[\s\S]*mapModeBtn[\s\S]*restartBtn/);
   assert.match(html, /class="top-tools"[\s\S]*fullscreenBtn[\s\S]*class="altimeter"/);
+  assert.match(html, /id="chooseExperienceBtn"[^>]*>← ELEGIR RECORRIDO<\/button>/);
+  assert.match(source, /chooseExperienceBtn\.addEventListener\('click', reopenExperienceSetup\)/);
+  assert.match(source, /function reopenExperienceSetup\(\)[\s\S]*modeChoice\.hidden = false[\s\S]*experienceSetup\.hidden = false/);
   assert.match(styles, /\.controls\s*\{[\s\S]*right: 24px;[\s\S]*justify-content: flex-end/);
   assert.match(styles, /button\.step-control\s*\{[\s\S]*background: #fff;[\s\S]*color: #173442/);
   assert.match(source, /setFlightButton\('PAUSA'\)/);
