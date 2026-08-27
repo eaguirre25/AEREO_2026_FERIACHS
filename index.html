@@ -7,7 +7,7 @@
   <title>Aéreo San Martín 2026</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="styles.css?v=materials-2">
+  <link rel="stylesheet" href="styles.css?v=nav-3">
 </head>
 <body>
   <div id="experienceSetup" class="experience-setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
@@ -46,9 +46,9 @@
   </section>
   <main id="map" aria-label="Recorrido aéreo 3D por el Partido de General San Martín"></main>
   <section class="hud">
-    <button id="stopMaterialBtn" class="stop-material-trigger" type="button" aria-label="Abrir materiales de la Posta 7">
-      <span id="stopName" class="stop-name">POSTA 7</span>
-      <span id="stopTheme" class="stop-theme">CONCLUSIONES</span>
+    <button id="stopMaterialBtn" class="stop-material-trigger" type="button" aria-label="Abrir materiales de la Posta 1">
+      <span id="stopName" class="stop-name">POSTA 1</span>
+      <span id="stopTheme" class="stop-theme">PUNTO DE PARTIDA</span>
       <small>(HACÉ CLICK AQUÍ)</small>
     </button>
     <p id="stopMeta" hidden></p>
@@ -88,7 +88,7 @@
   <div id="status" class="status" role="status" aria-live="polite">Preparando aeronave…</div>
   <div id="postaImpact" class="posta-impact" aria-hidden="true">
     <div id="postaImpactParticles" class="posta-impact-particles" aria-hidden="true"></div>
-    <strong id="postaImpactLabel" class="posta-impact-label">POSTA 7</strong>
+    <strong id="postaImpactLabel" class="posta-impact-label">POSTA 1</strong>
   </div>
   <div id="celebration" class="celebration" aria-hidden="true">
     <div id="confetti" class="confetti" aria-hidden="true"></div>
@@ -116,7 +116,7 @@
   <div id="materialOverlay" class="material-overlay" role="dialog" aria-modal="true" aria-labelledby="materialTitle" aria-hidden="true">
     <section class="material-panel">
       <button id="closeMaterialBtn" class="material-close" type="button">✕ CERRAR Y CONTINUAR</button>
-      <h2 id="materialTitle">POSTA 7</h2>
+      <h2 id="materialTitle">POSTA 1</h2>
       <div id="materialBody" class="material-body"></div>
     </section>
   </div>
@@ -133,6 +133,6 @@
       }
     }
   </script>
-  <script type="module" src="app.js?v=26"></script>
+  <script type="module" src="app.js?v=27"></script>
 </body>
 </html>

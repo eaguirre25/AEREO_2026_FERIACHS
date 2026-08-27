@@ -14,7 +14,7 @@ test('la ruta tiene una duración por cada tramo', () => {
   assert.equal(SEGMENT_SECONDS.length, STOPS.length - 1);
 });
 
-test('la elevación y salida parten de la Posta 7 sin saltos', () => {
+test('la elevación y salida parten de la Posta 1 sin saltos', () => {
   assert.equal(DEPARTURE_PATH.length, DEPARTURE_SECONDS.length + 1);
   assert.ok(DEPARTURE_SECONDS.every(seconds => seconds >= 4 && seconds <= 12));
   assert.equal(DEPARTURE_PATH[0].lat, DEPARTURE_PATH[1].lat);
@@ -23,12 +23,12 @@ test('la elevación y salida parten de la Posta 7 sin saltos', () => {
   assert.ok(DEPARTURE_PATH[2].alt > DEPARTURE_PATH[1].alt);
 
   DEPARTURE_PATH.forEach(point => {
-    assert.ok(point.lat >= -34.532 && point.lat <= -34.521);
-    assert.ok(point.lng >= -58.588 && point.lng <= -58.580);
+    assert.ok(point.lat >= -34.541 && point.lat <= -34.521);
+    assert.ok(point.lng >= -58.582 && point.lng <= -58.565);
   });
 });
 
-test('la salida queda alineada con la dirección de la Posta 6', () => {
+test('la salida queda alineada con la dirección de la Posta 2', () => {
   const bearing = (a, b) => {
     const deltaLng = (b.lng - a.lng) * Math.PI / 180;
     const latA = a.lat * Math.PI / 180;
@@ -46,7 +46,7 @@ test('la salida queda alineada con la dirección de la Posta 6', () => {
 
 test('las postas tienen identificadores y datos válidos', () => {
   STOPS.forEach((stop, index) => {
-    assert.equal(stop.id, STOPS.length - index);
+    assert.equal(stop.id, index + 1);
     assert.ok(stop.name.length > 0);
     assert.ok(stop.lat >= -34.65 && stop.lat <= -34.48);
     assert.ok(stop.lng >= -58.66 && stop.lng <= -58.48);
@@ -107,13 +107,13 @@ test('las postas muestran nombres de localidades verificadas', () => {
     STOPS.map(stop => stop.name),
     [
       'José L. Suárez',
-      'Loma Hermosa',
-      'Billinghurst',
-      'Villa Ballester',
-      'San Andrés',
-      'Villa Maipú',
-      'San Martín',
       'Villa Lynch',
+      'San Martín',
+      'Villa Maipú',
+      'San Andrés',
+      'Villa Ballester',
+      'Billinghurst',
+      'Loma Hermosa',
       'UNSAM'
     ]
   );
@@ -125,14 +125,14 @@ test('las postas muestran nombres de localidades verificadas', () => {
 
 test('las etapas usan los títulos de sus materiales', () => {
   assert.deepEqual(STOPS.map(stop => stop.title), [
-    'Conclusiones',
-    'Metodología',
-    'Antecedentes',
-    'Hipótesis',
-    'Objetivos',
-    'Pregunta de investigación',
-    'Situación problemática',
+    'Punto de partida',
     'Mirador: afinar lo que vemos',
-    'Punto de partida'
+    'Situación problemática',
+    'Pregunta de investigación',
+    'Objetivos',
+    'Hipótesis',
+    'Antecedentes',
+    'Metodología',
+    'Conclusiones'
   ]);
 });

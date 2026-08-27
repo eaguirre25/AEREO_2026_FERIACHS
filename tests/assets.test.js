@@ -123,7 +123,8 @@ test('las postas tienen números 3D, impacto y rótulo que vuela al cartel fijo'
   assert.match(source, /function completeFlight\(\)[\s\S]*triggerPostaImpact\(STOPS\.length - 1\)/);
   assert.match(source, /dataset\.airshipImpact = 'burst'/);
   assert.match(styles, /\.route-nav button span \{[\s\S]*font-size: 28px/);
-  assert.match(styles, /font: 700 20px 'Rajdhani'/);
+  assert.match(styles, /font: 700 13px 'Rajdhani'/);
+  assert.match(styles, /-webkit-line-clamp: 3/);
   assert.match(styles, /@keyframes posta-impact-burst/);
   assert.match(styles, /@keyframes posta-label-flight/);
 });

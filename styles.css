@@ -449,7 +449,7 @@ button:focus-visible {
   left: 24px;
   z-index: 6;
   display: grid;
-  grid-template-columns: repeat(9, minmax(110px, 1fr));
+  grid-template-columns: repeat(9, minmax(86px, 1fr));
   gap: 6px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 18px;
@@ -477,7 +477,7 @@ button:focus-visible {
   font: 600 10px 'Rajdhani', sans-serif;
   text-overflow: ellipsis;
   text-transform: uppercase;
-  white-space: nowrap;
+  white-space: normal;
   cursor: pointer;
   opacity: 0.68;
   transition: opacity 250ms ease, background 250ms ease, color 250ms ease;
@@ -493,9 +493,13 @@ button:focus-visible {
 .route-nav button small {
   max-width: 100%;
   overflow: hidden;
-  font: 700 20px 'Rajdhani', sans-serif;
+  display: -webkit-box;
+  font: 700 13px 'Rajdhani', sans-serif;
   line-height: 1.05;
-  text-overflow: ellipsis;
+  text-align: center;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .posta-impact {
@@ -1145,8 +1149,8 @@ noscript {
   }
 
   .route-nav button { height: 72px; }
-  .route-nav button span { font-size: 24px; }
-  .route-nav button small { font-size: 18px; }
+  .route-nav button span { font-size: 21px; }
+  .route-nav button small { font-size: 11px; }
 
   .top-tools {
     top: max(18px, env(safe-area-inset-top));
