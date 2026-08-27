@@ -71,6 +71,17 @@ const POSTA_SLIDES = new Map([
   [7, POSTA_6_SLIDES],
   [8, POSTA_7_SLIDES]
 ]);
+const POSTA_PDFS = new Map([
+  [0, './assets/pdfs/Posta-1-Punto-de-partida.pdf'],
+  [1, './assets/pdfs/Posta-2-Mirador.pdf'],
+  [2, './assets/pdfs/Posta-3-Situacion-problematica.pdf'],
+  [3, './assets/pdfs/Posta-4-Pregunta-de-investigacion.pdf'],
+  [4, './assets/pdfs/Posta-5-Objetivos.pdf'],
+  [5, './assets/pdfs/Parada-A-Hipotesis.pdf'],
+  [6, './assets/pdfs/Parada-B-Antecedentes.pdf'],
+  [7, './assets/pdfs/Posta-6-Metodologia.pdf'],
+  [8, './assets/pdfs/Posta-7-Conclusiones.pdf']
+]);
 const stopLabel = stop => stop.stageLabel || `POSTA ${stop.id}`;
 const stopSpokenLabel = stop => stop.stageLabel
   ? stop.stageLabel.replace('PARADA', 'Parada').replace('POSTA', 'Posta')
@@ -165,6 +176,7 @@ const materialOverlay = $('#materialOverlay');
 const materialTitle = $('#materialTitle');
 const materialBody = $('#materialBody');
 const closeMaterialBtn = $('#closeMaterialBtn');
+const materialDownloadLink = $('#materialDownloadLink');
 const freeModeBtn = $('#freeModeBtn');
 const freeFlightControls = $('#freeFlightControls');
 const freeJoystick = $('#freeJoystick');
@@ -537,6 +549,9 @@ function renderPostaSlide() {
 function renderMaterial(index) {
   const stop = STOPS[index];
   materialTitle.textContent = `${stopLabel(stop)} · ${stop.title.toUpperCase()}`;
+  materialDownloadLink.href = POSTA_PDFS.get(index) || '#';
+  materialDownloadLink.download = POSTA_PDFS.get(index)?.split('/').at(-1) || 'material.pdf';
+  materialDownloadLink.hidden = !POSTA_PDFS.has(index);
   if (POSTA_SLIDES.has(index)) {
     materialSlideIndex = 0;
     renderPostaSlide();
@@ -594,16 +609,8 @@ function stepMaterialSlide(direction) {
   renderPostaSlide();
 }
 
-function reopenExperienceSetup() {
-  reset(false);
-  journeyIntro.hidden = true;
-  journeyIntro.setAttribute('aria-hidden', 'true');
-  orientationPrompt.hidden = true;
-  modeChoice.hidden = false;
-  experienceSetup.hidden = false;
-  experienceSetup.setAttribute('aria-hidden', 'false');
-  delete document.documentElement.dataset.experienceMode;
-  window.requestAnimationFrame(() => mobileModeBtn.focus());
+function returnToPresentationStart() {
+  window.location.href = 'https://eaguirre25.github.io/COMOCREAMOS_MAPA_FERIA_2026/';
 }
 
 function previewStop(index) {
@@ -649,7 +656,7 @@ function previewStop(index) {
     ? 'VOLVER A VOLAR'
     : index === 0 ? 'INICIAR' : 'CONTINUAR');
   setStatus(isLastStop
-    ? 'Recorrido completo · Conclusiones'
+    ? 'Recorrido completo · Conclusiones · UNSAM'
     : index === 0 ? `Dirigible listo para elevarse desde ${stop.title}` : `Vista previa · ${stop.title}`);
   if (isLastStop) triggerCelebration();
   else cancelCelebration();
@@ -973,7 +980,7 @@ function completeFlight() {
   flightState = 'completed';
   planeState = { ...planeState, throttle: 0.28, bank: 0, pitch: 0 };
   setFlightButton('VOLVER A VOLAR');
-  setStatus('Recorrido completo · José L. Suárez');
+  setStatus('Recorrido completo · Conclusiones · UNSAM');
   freeModeBtn.hidden = false;
   triggerPostaImpact(STOPS.length - 1);
   triggerCelebration();
@@ -1291,7 +1298,7 @@ prevStopBtn.addEventListener('click', () => stepToStop(-1));
 nextStopBtn.addEventListener('click', () => stepToStop(1));
 mapModeBtn.addEventListener('click', () => setMapMode(!satelliteEnabled));
 fullscreenBtn.addEventListener('click', toggleFullscreen);
-chooseExperienceBtn.addEventListener('click', reopenExperienceSetup);
+chooseExperienceBtn.addEventListener('click', returnToPresentationStart);
 document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('fullscreenerror', () => {
   setStatus('No se pudo activar la pantalla completa.', true);

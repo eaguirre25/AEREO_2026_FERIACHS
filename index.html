@@ -7,7 +7,7 @@
   <title>Aéreo San Martín 2026</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="styles.css?v=nav-4">
+  <link rel="stylesheet" href="styles.css?v=controls-5">
 </head>
 <body>
   <div id="experienceSetup" class="experience-setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
@@ -65,12 +65,14 @@
     </div>
   </section>
   <div class="controls">
-    <div class="control-group flight-controls">
-      <button id="startBtn" type="button" class="primary" aria-pressed="false">INICIAR</button>
-    </div>
-    <div class="control-group step-controls">
-      <button id="prevStopBtn" type="button" class="step-control" disabled>← RETROCEDER</button>
-      <button id="nextStopBtn" type="button" class="step-control">AVANZAR →</button>
+    <div class="journey-control-cluster">
+      <div class="control-group flight-controls">
+        <button id="startBtn" type="button" class="primary" aria-pressed="false">INICIAR</button>
+      </div>
+      <div class="control-group step-controls">
+        <button id="prevStopBtn" type="button" class="step-control" disabled>← RETROCEDER</button>
+        <button id="nextStopBtn" type="button" class="step-control">AVANZAR →</button>
+      </div>
     </div>
     <div class="control-group utility-controls">
       <button id="mapModeBtn" type="button" aria-pressed="false" aria-label="Usar vista satelital" disabled>SATÉLITE</button>
@@ -117,6 +119,7 @@
   <div id="materialOverlay" class="material-overlay" role="dialog" aria-modal="true" aria-labelledby="materialTitle" aria-hidden="true">
     <section class="material-panel">
       <button id="closeMaterialBtn" class="material-close" type="button">✕ CERRAR Y CONTINUAR</button>
+      <a id="materialDownloadLink" class="material-download" href="#" download>⇩ DESCARGAR PDF</a>
       <h2 id="materialTitle">POSTA 1</h2>
       <div id="materialBody" class="material-body"></div>
     </section>
@@ -134,6 +137,6 @@
       }
     }
   </script>
-  <script type="module" src="app.js?v=29"></script>
+  <script type="module" src="app.js?v=30"></script>
 </body>
 </html>

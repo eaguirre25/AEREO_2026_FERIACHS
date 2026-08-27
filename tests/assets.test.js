@@ -165,8 +165,11 @@ test('los controles usan un único botón de vuelo y recuperan la esquina derech
   assert.match(html, /class="control-group utility-controls"[\s\S]*mapModeBtn[\s\S]*restartBtn/);
   assert.match(html, /class="top-tools"[\s\S]*fullscreenBtn[\s\S]*class="altimeter"/);
   assert.match(html, /id="chooseExperienceBtn"[^>]*>← ELEGIR RECORRIDO<\/button>/);
-  assert.match(source, /chooseExperienceBtn\.addEventListener\('click', reopenExperienceSetup\)/);
-  assert.match(source, /function reopenExperienceSetup\(\)[\s\S]*modeChoice\.hidden = false[\s\S]*experienceSetup\.hidden = false/);
+  assert.match(source, /chooseExperienceBtn\.addEventListener\('click', returnToPresentationStart\)/);
+  assert.match(source, /function returnToPresentationStart\(\)[\s\S]*COMOCREAMOS_MAPA_FERIA_2026/);
+  assert.match(html, /class="journey-control-cluster"[\s\S]*id="startBtn"[\s\S]*id="prevStopBtn"[\s\S]*id="nextStopBtn"/);
+  assert.match(styles, /\.controls button\.primary[\s\S]*#ff315d[\s\S]*flight-action-pulse/);
+  assert.match(styles, /\.free-mode-entry[\s\S]*#f000b8[\s\S]*free-mode-pulse/);
   assert.match(styles, /\.controls\s*\{[\s\S]*right: 24px;[\s\S]*justify-content: flex-end/);
   assert.match(styles, /button\.step-control\s*\{[\s\S]*background: #fff;[\s\S]*color: #173442/);
   assert.match(source, /setFlightButton\('PAUSA'\)/);

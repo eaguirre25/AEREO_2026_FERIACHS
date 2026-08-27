@@ -402,6 +402,18 @@ button:focus-visible {
   pointer-events: auto;
 }
 
+.journey-control-cluster {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 2px solid rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
+  padding: 5px;
+  background: rgba(4, 13, 19, 0.88);
+  box-shadow: 0 0 28px rgba(255, 76, 88, 0.34), 0 12px 34px rgba(0, 0, 0, 0.42);
+  pointer-events: auto;
+}
+
 .utility-controls {
   min-width: 124px;
   flex-direction: column;
@@ -421,8 +433,15 @@ button:focus-visible {
 }
 
 .controls button.primary {
-  background: #fff;
-  color: #09131a;
+  min-width: 128px;
+  border: 2px solid #fff;
+  background: linear-gradient(135deg, #ff315d, #ff8a00);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  box-shadow: 0 0 22px rgba(255, 74, 70, 0.72);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  animation: flight-action-pulse 1.7s ease-in-out infinite;
 }
 
 .controls button.step-control {
@@ -738,16 +757,18 @@ button:focus-visible {
   left: 50%;
   z-index: 14;
   min-height: 52px;
-  border: 2px solid #fff;
+  border: 3px solid #fff;
   border-radius: 999px;
   padding: 13px 24px;
-  background: linear-gradient(100deg, #fff, #bff9ff);
-  color: #07161d;
-  font: 700 16px 'Rajdhani', sans-serif;
+  background: linear-gradient(110deg, #8d2bff, #f000b8, #ff6a00);
+  color: #fff;
+  font: 900 18px 'Rajdhani', sans-serif;
   letter-spacing: 0.08em;
-  box-shadow: 0 0 30px rgba(141, 233, 242, 0.72), 0 16px 50px rgba(0, 0, 0, 0.42);
+  box-shadow: 0 0 24px rgba(240, 0, 184, 0.9), 0 0 58px rgba(141, 43, 255, 0.65), 0 16px 50px rgba(0, 0, 0, 0.42);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
   transform: translate(-50%, -50%);
   cursor: pointer;
+  animation: free-mode-pulse 1.4s ease-in-out infinite;
 }
 
 .free-mode-entry[hidden],
@@ -870,6 +891,33 @@ html[data-flight-mode='free'] .airship-credit { display: none; }
   font: 800 12px 'Rajdhani', sans-serif;
   letter-spacing: 0.08em;
   cursor: pointer;
+}
+
+.material-download {
+  position: absolute;
+  top: 16px;
+  right: 190px;
+  z-index: 4;
+  min-height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #72f4c4;
+  border-radius: 999px;
+  padding: 9px 15px;
+  background: #0aa875;
+  color: #fff;
+  font: 900 12px 'Rajdhani', sans-serif;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  box-shadow: 0 0 18px rgba(60, 255, 190, 0.42);
+}
+
+@keyframes flight-action-pulse {
+  50% { filter: brightness(1.2); box-shadow: 0 0 34px rgba(255, 92, 45, 0.95); }
+}
+
+@keyframes free-mode-pulse {
+  50% { transform: translate(-50%, -50%) scale(1.06); filter: brightness(1.16); }
 }
 
 .material-body {
@@ -1133,6 +1181,8 @@ noscript {
   .control-group { gap: 4px; }
   .flight-controls,
   .step-controls { flex-direction: row; }
+
+  .journey-control-cluster { gap: 3px; padding: 3px; }
   .utility-controls {
     min-width: 0;
     flex-direction: column;
@@ -1209,6 +1259,14 @@ noscript {
   .material-panel h2 {
     max-width: calc(100% - 150px);
     font-size: 18px;
+  }
+
+  .material-download {
+    top: 59px;
+    right: 8px;
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 10px;
   }
 
   .material-close {
