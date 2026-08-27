@@ -7,7 +7,9 @@
   <title>Aéreo San Martín 2026</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="styles.css?v=faustina-6">
+  <link rel="preload" as="image" href="assets/intro-plates/intro-01.webp">
+  <link rel="preload" as="image" href="assets/intro-plates/intro-02.webp">
+  <link rel="stylesheet" href="styles.css?v=intro-7">
 </head>
 <body>
   <div id="experienceSetup" class="experience-setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
@@ -41,7 +43,13 @@
           <p>Te proponemos un recorrido interactivo por este mapa con postas y paradas para acompañarlas/os a la próxima edición de la Feria.</p>
         </article>
       </div>
-      <button id="journeyIntroContinue" class="journey-intro-continue" type="button">CONTINUAR AL RECORRIDO AÉREO →</button>
+      <figure id="journeyIntroPlate" class="journey-intro-plate" hidden>
+        <img id="journeyIntroPlateImage" src="assets/intro-plates/intro-01.webp" alt="Información previa al inicio del recorrido, placa 1 de 2">
+      </figure>
+      <div class="journey-intro-actions">
+        <button id="journeyIntroPrevious" class="journey-intro-previous" type="button" hidden>← ANTERIOR</button>
+        <button id="journeyIntroContinue" class="journey-intro-continue" type="button">SIGUIENTE →</button>
+      </div>
     </div>
   </section>
   <main id="map" aria-label="Recorrido aéreo 3D por el Partido de General San Martín"></main>
@@ -139,6 +147,6 @@
       }
     }
   </script>
-  <script type="module" src="app.js?v=31"></script>
+  <script type="module" src="app.js?v=32"></script>
 </body>
 </html>

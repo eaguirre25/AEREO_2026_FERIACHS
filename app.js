@@ -172,6 +172,10 @@ const continueMobileBtn = $('#continueMobileBtn');
 const journeyIntro = $('#journeyIntro');
 const journeyIntroBack = $('#journeyIntroBack');
 const journeyIntroContinue = $('#journeyIntroContinue');
+const journeyIntroPrevious = $('#journeyIntroPrevious');
+const journeyIntroContent = $('.journey-intro-content');
+const journeyIntroPlate = $('#journeyIntroPlate');
+const journeyIntroPlateImage = $('#journeyIntroPlateImage');
 const materialOverlay = $('#materialOverlay');
 const materialTitle = $('#materialTitle');
 const materialBody = $('#materialBody');
@@ -219,6 +223,11 @@ const impactedPostas = new Set();
 let airshipImpactStartedAt = -Infinity;
 let postaImpactHideTimer = null;
 let postaArrivalTimer = null;
+let journeyIntroStep = 0;
+const JOURNEY_INTRO_PLATES = [
+  'assets/intro-plates/intro-01.webp',
+  'assets/intro-plates/intro-02.webp'
+];
 
 STOPS.forEach((stop, index) => {
   const button = document.createElement('button');
@@ -372,6 +381,37 @@ function enterAerialExperience() {
   });
 }
 
+function renderJourneyIntroStep() {
+  const showingOpeningPlate = journeyIntroStep === 0;
+  journeyIntroContent.hidden = !showingOpeningPlate;
+  journeyIntroPlate.hidden = showingOpeningPlate;
+  journeyIntroPrevious.hidden = showingOpeningPlate;
+  if (!showingOpeningPlate) {
+    const plateIndex = journeyIntroStep - 1;
+    journeyIntroPlateImage.src = JOURNEY_INTRO_PLATES[plateIndex];
+    journeyIntroPlateImage.alt = `Información previa al inicio del recorrido, placa ${plateIndex + 1} de ${JOURNEY_INTRO_PLATES.length}`;
+  }
+  journeyIntroContinue.textContent = journeyIntroStep < JOURNEY_INTRO_PLATES.length
+    ? 'SIGUIENTE →'
+    : 'CONTINUAR AL RECORRIDO AÉREO →';
+}
+
+function advanceJourneyIntro() {
+  if (journeyIntroStep < JOURNEY_INTRO_PLATES.length) {
+    journeyIntroStep += 1;
+    renderJourneyIntroStep();
+    journeyIntroContinue.focus();
+    return;
+  }
+  enterAerialExperience();
+}
+
+function retreatJourneyIntro() {
+  journeyIntroStep = Math.max(0, journeyIntroStep - 1);
+  renderJourneyIntroStep();
+  (journeyIntroStep === 0 ? journeyIntroContinue : journeyIntroPrevious).focus();
+}
+
 function showMobileOrientationPrompt() {
   document.documentElement.dataset.experienceMode = 'mobile';
   modeChoice.hidden = true;
@@ -383,7 +423,8 @@ mobileModeBtn.addEventListener('click', showMobileOrientationPrompt);
 
 desktopModeBtn.addEventListener('click', () => finishExperienceSetup('desktop'));
 continueMobileBtn.addEventListener('click', () => finishExperienceSetup('mobile'));
-journeyIntroContinue.addEventListener('click', enterAerialExperience);
+journeyIntroContinue.addEventListener('click', advanceJourneyIntro);
+journeyIntroPrevious.addEventListener('click', retreatJourneyIntro);
 
 const requestedExperienceMode = new URLSearchParams(window.location.search).get('device');
 if (requestedExperienceMode === 'desktop') {

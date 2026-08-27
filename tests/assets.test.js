@@ -189,7 +189,9 @@ test('la portada permite elegir dispositivo y adapta los controles al celular', 
   assert.match(html, /id="journeyIntro"/);
   assert.match(html, /assets\/intro\/el-camino-de-la-investigacion\.png/);
   assert.match(html, /Te proponemos un recorrido interactivo por este mapa con postas/);
-  assert.match(html, /CONTINUAR AL RECORRIDO AÉREO/);
+  assert.match(html, /assets\/intro-plates\/intro-01\.webp/);
+  assert.match(html, /assets\/intro-plates\/intro-02\.webp/);
+  assert.match(source, /CONTINUAR AL RECORRIDO AÉREO/);
   assert.match(html, />VERSIÓN MÓVIL<\/button>/);
   assert.match(html, />ESCRITORIO PC<\/button>/);
   assert.match(html, /posición horizontal para mejorar la experiencia/);
@@ -202,7 +204,7 @@ test('la portada permite elegir dispositivo y adapta los controles al celular', 
   assert.match(source, /journeyIntro\.hidden = false/);
   assert.match(source, /function enterAerialExperience\(\)/);
   assert.match(source, /journeyIntro\.hidden = true/);
-  assert.match(source, /journeyIntroContinue\.addEventListener\('click', enterAerialExperience\)/);
+  assert.match(source, /journeyIntroContinue\.addEventListener\('click', advanceJourneyIntro\)/);
   assert.match(styles, /@media \(max-width: 620px\)/);
   assert.match(styles, /flex-direction: column-reverse/);
   assert.match(styles, /\.fullscreen-control \{[\s\S]*?width: 70px;[\s\S]*?min-height: 34px;/);

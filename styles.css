@@ -240,6 +240,29 @@ body {
   box-shadow: 0 0 22px rgba(0, 239, 255, .3);
 }
 
+.journey-intro-plate {
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .62);
+  border-radius: 14px;
+  background: #080c12;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
+}
+.journey-intro-plate img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.journey-intro-actions { display: flex; justify-content: flex-end; gap: 12px; }
+.journey-intro-previous {
+  min-height: 52px;
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 999px;
+  padding: 12px 24px;
+  background: rgba(4, 13, 19, .86);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .journey-intro-header a:hover,
 .journey-intro-header a:focus-visible,
 .journey-intro-continue:hover,
