@@ -1,4 +1,4 @@
-# Materiales de Posta 2
+# Materiales de Posta 3
 
 Las tres placas fueron provistas por el equipo de la Feria de Ciencias Sociales y Humanas.
 

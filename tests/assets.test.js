@@ -200,7 +200,7 @@ test('la portada permite elegir dispositivo y adapta los controles al celular', 
   assert.match(styles, /\.fullscreen-control \{[\s\S]*?width: 70px;[\s\S]*?min-height: 34px;/);
 });
 
-test('cada posta abre un panel y las Postas 1 y 2 conservan sus placas', async () => {
+test('cada posta abre un panel y las Postas 1, 2 y 3 conservan sus placas', async () => {
   const [source, html] = await Promise.all([
     readFile(new URL('../app.js', import.meta.url), 'utf8'),
     readFile(new URL('../index.html', import.meta.url), 'utf8')
@@ -229,7 +229,7 @@ test('cada posta abre un panel y las Postas 1 y 2 conservan sus placas', async (
     assert.ok(file.size > 50_000, `la placa ${index} de Posta 1 no puede estar vacía`);
   }
 
-  for (let index = 1; index <= 7; index += 1) {
+  for (let index = 1; index <= 3; index += 1) {
     const file = await stat(new URL(
       `../assets/materials/posta-2/slide-${String(index).padStart(2, '0')}.webp`,
       import.meta.url
@@ -240,6 +240,15 @@ test('cada posta abre un panel y las Postas 1 y 2 conservan sus placas', async (
   assert.ok(sourceNote.size > 0);
   const posta1SourceNote = await stat(new URL('../assets/materials/posta-1/SOURCE.md', import.meta.url));
   assert.ok(posta1SourceNote.size > 0);
+  for (let index = 1; index <= 3; index += 1) {
+    const file = await stat(new URL(
+      `../assets/materials/posta-3/slide-${String(index).padStart(2, '0')}.webp`,
+      import.meta.url
+    ));
+    assert.ok(file.size > 50_000, `la placa ${index} de Posta 3 no puede estar vacía`);
+  }
+  const posta3SourceNote = await stat(new URL('../assets/materials/posta-3/SOURCE.md', import.meta.url));
+  assert.ok(posta3SourceNote.size > 0);
 });
 
 test('el final habilita vuelo libre con teclado, control táctil y selector de velocidad', async () => {
@@ -290,8 +299,9 @@ test('el HUD muestra el título temático y la cuenta regresiva sin revelar la f
 test('el panel de materiales reserva el alto real del título sin cortar las placas', async () => {
   const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
   assert.match(styles, /\.material-panel\s*\{[\s\S]*display: flex;[\s\S]*flex-direction: column;/);
-  assert.match(styles, /\.material-body\s*\{[\s\S]*flex: 1 1 auto;[\s\S]*height: auto;/);
+  assert.match(styles, /\.material-body\s*\{[\s\S]*flex: 1 1 auto;[\s\S]*height: 100%;/);
   assert.match(styles, /\.slide-stage img\s*\{[\s\S]*width: 100%;[\s\S]*height: 100%;[\s\S]*object-fit: contain;/);
+  assert.match(styles, /\.material-panel\s*\{[\s\S]*width: calc\(100vw - 8px\);[\s\S]*height: calc\(100dvh - 8px\);/);
 });
 
 test('la experiencia inicia en mapa vectorial y ofrece el cambio a satélite', async () => {
