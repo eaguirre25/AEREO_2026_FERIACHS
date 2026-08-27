@@ -178,6 +178,7 @@ const materialBody = $('#materialBody');
 const closeMaterialBtn = $('#closeMaterialBtn');
 const materialDownloadLink = $('#materialDownloadLink');
 const freeModeBtn = $('#freeModeBtn');
+const completePdfBtn = $('#completePdfBtn');
 const freeFlightControls = $('#freeFlightControls');
 const freeJoystick = $('#freeJoystick');
 const freeJoystickKnob = $('#freeJoystickKnob');
@@ -982,6 +983,7 @@ function completeFlight() {
   setFlightButton('VOLVER A VOLAR');
   setStatus('Recorrido completo · Conclusiones · UNSAM');
   freeModeBtn.hidden = false;
+  completePdfBtn.hidden = false;
   triggerPostaImpact(STOPS.length - 1);
   triggerCelebration();
   map.easeTo({ zoom: 14.7, pitch: 62, duration: 2500, essential: false });
@@ -1074,6 +1076,7 @@ function enterFreeFlight() {
   };
   cameraOrbit = { ...CAMERA_ORBIT_DEFAULT };
   freeModeBtn.hidden = true;
+  completePdfBtn.hidden = true;
   freeFlightControls.hidden = false;
   document.documentElement.dataset.flightMode = 'free';
   updateFreeFlightSpeed();
@@ -1090,6 +1093,7 @@ function exitFreeFlight() {
   planeState = { ...planeState, throttle: 0.28, bank: 0, pitch: 0 };
   freeFlightControls.hidden = true;
   freeModeBtn.hidden = false;
+  completePdfBtn.hidden = false;
   document.documentElement.dataset.flightMode = 'route';
   setFlightButton('VOLVER A VOLAR');
   setStatus('Modo libre finalizado · podés volver a activarlo');
@@ -1261,6 +1265,7 @@ function reset(animateMap = true) {
   document.documentElement.dataset.airshipImpact = 'idle';
   resetFreeFlightInput();
   freeModeBtn.hidden = true;
+  completePdfBtn.hidden = true;
   freeFlightControls.hidden = true;
   document.documentElement.dataset.flightMode = 'route';
   materialOverlay.classList.remove('open');

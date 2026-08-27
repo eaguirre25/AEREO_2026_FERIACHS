@@ -123,7 +123,7 @@ test('las postas tienen números 3D, impacto y rótulo que vuela al cartel fijo'
   assert.match(source, /function completeFlight\(\)[\s\S]*triggerPostaImpact\(STOPS\.length - 1\)/);
   assert.match(source, /dataset\.airshipImpact = 'burst'/);
   assert.match(styles, /\.route-nav button span \{[\s\S]*font-size: 28px/);
-  assert.match(styles, /font: 700 13px 'Rajdhani'/);
+  assert.match(styles, /font: 700 13px 'Faustina'/);
   assert.match(styles, /-webkit-line-clamp: 3/);
   assert.match(styles, /@keyframes posta-impact-burst/);
   assert.match(styles, /@keyframes posta-label-flight/);
@@ -361,17 +361,17 @@ test('la experiencia inicia en mapa vectorial y ofrece el cambio a satélite', a
   assert.match(source, /mapModeBtn\.textContent = satelliteEnabled \? 'MAPA' : 'SATÉLITE'/);
 });
 
-test('toda la interfaz usa la familia Rajdhani local en sus cinco pesos', async () => {
+test('toda la interfaz usa la familia Faustina local en sus pesos principales', async () => {
   const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
-  const weights = ['Light', 'Regular', 'Medium', 'SemiBold', 'Bold'];
+  const weights = ['Regular', 'Medium', 'SemiBold', 'Bold'];
   for (const weight of weights) {
-    const font = await stat(new URL(`../assets/fonts/rajdhani/Rajdhani-${weight}.ttf`, import.meta.url));
-    assert.ok(font.size > 300_000, `falta el peso Rajdhani ${weight}`);
-    assert.match(styles, new RegExp(`Rajdhani-${weight}\\.ttf`));
+    const font = await stat(new URL(`../assets/fonts/faustina/Faustina-${weight}.ttf`, import.meta.url));
+    assert.ok(font.size > 70_000, `falta el peso Faustina ${weight}`);
+    assert.match(styles, new RegExp(`Faustina-${weight}\\.ttf`));
   }
-  const license = await stat(new URL('../assets/fonts/rajdhani/OFL.txt', import.meta.url));
+  const license = await stat(new URL('../assets/fonts/faustina/OFL.txt', import.meta.url));
   assert.ok(license.size > 4_000);
-  assert.match(styles, /\*\s*\{[\s\S]*font-family: 'Rajdhani', sans-serif;/);
+  assert.match(styles, /\*\s*\{[\s\S]*font-family: 'Faustina', sans-serif;/);
   assert.doesNotMatch(styles, /\bInter\b|\bArial\b|Georgia|Times New Roman|system-ui/);
 });
 
