@@ -42,6 +42,13 @@
   box-sizing: border-box;
   font-family: 'Faustina', sans-serif;
 }
+html body,
+html body button,
+html body a,
+html body input,
+html body output,
+html body select,
+html body textarea { font-family: 'Faustina', serif !important; }
 
 html,
 body,
