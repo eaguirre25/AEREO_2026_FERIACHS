@@ -8,7 +8,7 @@ import {
   DEPARTURE_PATH,
   DEPARTURE_SECONDS,
   LANDMARKS
-} from './route.js';
+} from './route.js?v=4';
 
 const AIRSHIP_BASE_SCALE = 16.8;
 const FLIGHT_SPEED_MULTIPLIER = 1.56;
