@@ -36,10 +36,20 @@ const POSTA_3_SLIDES = Array.from(
   { length: 3 },
   (_, index) => `./assets/materials/posta-3/slide-${String(index + 1).padStart(2, '0')}.webp`
 );
+const POSTA_4_SLIDES = Array.from(
+  { length: 5 },
+  (_, index) => `./assets/materials/posta-4/slide-${String(index + 1).padStart(2, '0')}.webp`
+);
+const POSTA_5_SLIDES = Array.from(
+  { length: 3 },
+  (_, index) => `./assets/materials/posta-5/slide-${String(index + 1).padStart(2, '0')}.webp`
+);
 const POSTA_SLIDES = new Map([
   [0, POSTA_1_SLIDES],
   [1, POSTA_2_SLIDES],
-  [2, POSTA_3_SLIDES]
+  [2, POSTA_3_SLIDES],
+  [3, POSTA_4_SLIDES],
+  [4, POSTA_5_SLIDES]
 ]);
 const LOCALITY_COLORS = [
   '#e53935',

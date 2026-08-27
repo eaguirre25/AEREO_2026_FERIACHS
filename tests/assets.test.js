@@ -200,7 +200,7 @@ test('la portada permite elegir dispositivo y adapta los controles al celular', 
   assert.match(styles, /\.fullscreen-control \{[\s\S]*?width: 70px;[\s\S]*?min-height: 34px;/);
 });
 
-test('cada posta abre un panel y las Postas 1, 2 y 3 conservan sus placas', async () => {
+test('cada posta abre un panel y las Postas 1 a 5 conservan sus placas', async () => {
   const [source, html] = await Promise.all([
     readFile(new URL('../app.js', import.meta.url), 'utf8'),
     readFile(new URL('../index.html', import.meta.url), 'utf8')
@@ -249,6 +249,17 @@ test('cada posta abre un panel y las Postas 1, 2 y 3 conservan sus placas', asyn
   }
   const posta3SourceNote = await stat(new URL('../assets/materials/posta-3/SOURCE.md', import.meta.url));
   assert.ok(posta3SourceNote.size > 0);
+  for (const [posta, count] of [[4, 5], [5, 3]]) {
+    for (let index = 1; index <= count; index += 1) {
+      const file = await stat(new URL(
+        `../assets/materials/posta-${posta}/slide-${String(index).padStart(2, '0')}.webp`,
+        import.meta.url
+      ));
+      assert.ok(file.size > 50_000, `la placa ${index} de Posta ${posta} no puede estar vacía`);
+    }
+    const sourceNote = await stat(new URL(`../assets/materials/posta-${posta}/SOURCE.md`, import.meta.url));
+    assert.ok(sourceNote.size > 0);
+  }
 });
 
 test('el final habilita vuelo libre con teclado, control táctil y selector de velocidad', async () => {
